@@ -1,26 +1,38 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import './index.css';
+import BreakPoint from './components/BreakPoint';
+import HasError from './components/HasError';
+import StartButton from './components/StartButton';
+import Dot from './components/dot';
+import TitleBar from './components/TitleBar';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-        Hello
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+class App extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      game: false
+    };
+    this.startGame = this.startGame.bind(this);
+  }
+
+  startGame() {
+    this.setState({
+      game: true
+    });
+  }
+  render() {
+    return (
+      <div>
+        {this.state.game ?
+          (<TitleBar />) :
+          (<StartButton 
+            startGame={this.startGame}
+            />
+            )}
     </div>
-  );
+    );
+  }
 }
+
 
 export default App;

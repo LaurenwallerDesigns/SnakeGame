@@ -11,3 +11,24 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+
+
+
+/*Title bar Style*/
+
+.title-bar {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-around;
+}
+
+.title {
+	margin-top: 1px;
+}
+.title-bar-second{
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	height:10px;
+}
