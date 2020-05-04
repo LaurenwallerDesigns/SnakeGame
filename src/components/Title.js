@@ -5,7 +5,8 @@ function Title(props){
 	return(
 		<div>
 			<h1 className="title"> Snake </h1>
-			<LevelNumber />
+			<LevelNumber
+				level={props.level} />
 		</div>
 	);
 }
