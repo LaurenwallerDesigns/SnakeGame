@@ -26,7 +26,8 @@ class App extends React.Component {
       levelUpGoal: 10,
       hitBoundary: false,
       dotDirection: "",
-      pauseGame: false
+      pauseGame: false,
+      randomDotsCount: 0,
 
     };
     this.startGame = this.startGame.bind(this);
@@ -41,6 +42,9 @@ class App extends React.Component {
     this.changeUp = this.changeUp.bind(this);
     this.changeDown = this.changeDown.bind(this);
     this.pauseGame = this.pauseGame.bind(this);
+    this.overlapDots = this.overlapDots.bind(this);
+    this.statePosition = this.statePosition.bind(this);
+    this.getRandomDotsPosition = this.getRandomDotsPosition.bind(this);
   }
 
   componentDidMount() {
@@ -72,14 +76,15 @@ class App extends React.Component {
 //Getting number of random dots
   randomDots() {
     this.ranNum = Math.floor(Math.random() * 20) + 1;
-    console.log(this.ranNum);
+    this.leftPos = Math.floor(Math.random() * this.rightBoundary);
+    this.topPos = Math.floor(Math.random() * this.bottomBoundary);
     const arrayFill = {animation: false,
             left: window.innerWidth * 0.5,
             top: window.innerHeight * 0.5,
             color: this.state.color};
     this.setState({
       dots: Array(this.ranNum).fill(arrayFill)
-    });
+      });
   }
 
 //Boundaries for the screen
@@ -95,57 +100,111 @@ class App extends React.Component {
     this.setState({
       game: true
     });
-    this.randomDotsMap();
+    this.statePosition();
   }
 
   moveHead = () => {
-    console.log(this.state.dotDirection);
+    this.randomDotsMap();
     if(this.state.dotDirection === "down"){
-      console.log('move head down ran');
       const snake = this.state.snake.slice();
       const topCurr = snake[0].top;
       snake[0].top = topCurr + 2;
        this.setState({
           snake: snake
        });
+       this.overlapDots();
     }else if(this.state.dotDirection === "up"){
-      console.log('move head down ran');
-        const snake = this.state.snake.slice();
-        const topCurr = snake[0].top;
-        snake[0].top = topCurr - 2;
-         this.setState({
-            snake: snake
-         });
+      const snake = this.state.snake.slice();
+      const topCurr = snake[0].top;
+      snake[0].top = topCurr - 2;
+       this.setState({
+          snake: snake
+       });
+       this.overlapDots();
     }else if(this.state.dotDirection === "left"){
-        const snake = this.state.snake.slice();
-        const leftCurr = snake[0].left;
-        snake[0].left = leftCurr - 2;
-         this.setState({
-            snake: snake
-         });
-    } else if(this.state.dotDirection === "right"){
-        const snake = this.state.snake.slice();
-        const leftCurr = snake[0].left;
-        snake[0].left = leftCurr + 2;
-         this.setState({
-            snake: snake
-         });
+      const snake = this.state.snake.slice();
+      const leftCurr = snake[0].left;
+      snake[0].left = leftCurr - 2;
+       this.setState({
+          snake: snake
+       });
+       this.overlapDots();
+    }else if(this.state.dotDirection === "right"){
+      const snake = this.state.snake.slice();
+      const leftCurr = snake[0].left;
+      snake[0].left = leftCurr + 2;
+       this.setState({
+          snake: snake
+       });
+       this.overlapDots();
     }
   }
 
+  //Checking snake with random dot position to see if it hit
+getRandomDotsPosition() {
+  // this.leftDot = this.state.dots.map((left, index) => {
+  //     return [left.left, left.top];
+  // });
 
+  // this.topDot = this.state.dots.map((top, index) => {
+  //     return top.top;
+  // });
+}
+
+
+overlapDots() {
+  const snake = this.state.snake;
+  const left = snake[0].left;
+  const top = snake[0].top;
+  const snakePos = [left, top];
+  const dots = this.state.dots;
+  this.leftDot = this.state.dots.map((dot, index) => {
+    if(left - dot.left <= 2 || left - dot.left >= -2){
+      console.log('hit');
+      return dot.top;
+      if(top - dot.top <= 5 && top - dot.top >= -5 ){
+        console.log('works');
+      }
+    }
+  });
+  
+  // if(top === )
+}
   randomDotsMap() {
     //Map for random dots
-    this.ranDots = this.state.dots.map((dot, index) =>
-      <Dot 
-        className={dot.animation}
-        left={Math.floor(Math.random() * this.rightBoundary)}
-        top={Math.floor(Math.random() * this.bottomBoundary)}
-        color={"#" + Math.floor(Math.random()*16777215).toString(16)}
-        />
-
-    );
+    this.ranDots = this.state.dots.map((dot, index) => {
+      this.index = index;
+      return <Dot 
+              id={"index" + dot.index}
+              className={dot.animation}
+              left={dot.left}
+              top={dot.top}
+              color={"#" + dot.color}
+              />
+    });
   }
+
+
+  statePosition() {
+    const vart = this.state.dots.map((dot, index) => {
+      const left = Math.floor(Math.random() * this.rightBoundary);
+      const top = Math.floor(Math.random() * this.bottomBoundary);
+      const color = Math.floor(Math.random()*16777215).toString(16);
+      return {
+        animation: dot.animation,
+        index: index,
+        left: left,
+        top: top,
+        color: color
+      }
+    });
+    this.setState({
+      dots: vart
+    });
+
+  }
+
+
   changeLeft() {
     clearInterval(this.interval);
     this.setState({
@@ -163,7 +222,6 @@ class App extends React.Component {
   }
 
   changeUp() {
-    console.log('up ran');
     clearInterval(this.interval);
     this.setState({
       dotDirection: "up"
@@ -172,7 +230,6 @@ class App extends React.Component {
   }
 
   changeDown() {
-    console.log('down Ran');
     clearInterval(this.interval);
     this.setState({
       dotDirection: "down"
@@ -229,6 +286,8 @@ class App extends React.Component {
         />
 
     );
+
+
 
     // if(this.state.pauseGame){
     //   var pause = <PauseDisplay />;
