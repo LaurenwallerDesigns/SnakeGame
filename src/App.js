@@ -44,7 +44,8 @@ class App extends React.Component {
     this.pauseGame = this.pauseGame.bind(this);
     this.overlapDots = this.overlapDots.bind(this);
     this.statePosition = this.statePosition.bind(this);
-    this.getRandomDotsPosition = this.getRandomDotsPosition.bind(this);
+    this.between = this.between.bind(this);
+    this.getSnakeMovePrevious = this.getSnakeMovePrevious.bind(this);
   }
 
   componentDidMount() {
@@ -61,16 +62,76 @@ class App extends React.Component {
 
 //Used for adding a dot to end of snake 
   addDot = (i) => {
-    this.setState({
-      snake: this.state.snake.concat([{
-            id: this.prevDotId += 1,
-            animation: true,
-            left: window.innerWidth * 0.5,
-            top: window.innerHeight * 0.5,
-            color: this.state.color,
-            dotDirection: "down"
-      }]),
-    });
+    if(this.state.hitDot){
+      const snake = this.state.snake.slice();
+      const snakeLength = snake[snake.length - 1];
+      const snakeCurrIndex = snake.indexOf(snakeLength);
+      const direction = snake[snakeCurrIndex].dotDirection;
+      if(direction === "down"){
+        this.leftAddedPos = snake[snakeCurrIndex].left;
+        this.topAddedPos = snake[snakeCurrIndex].top - 15;
+        this.setState({
+              snake: this.state.snake.concat([{
+                    id: this.prevDotId += 1,
+                    animation: false,
+                    left: this.leftAddedPos,
+                    top: this.topAddedPos,
+                    color: this.state.color,
+                    dotDirection: direction
+              }]),
+            });
+      }else if(direction === "left"){
+        this.leftAddedPos = snake[snakeCurrIndex].left + 15;
+        this.topAddedPos = snake[snakeCurrIndex].top;
+        this.setState({
+              snake: this.state.snake.concat([{
+                    id: this.prevDotId += 1,
+                    animation: false,
+                    left: this.leftAddedPos,
+                    top: this.topAddedPos,
+                    color: this.state.color,
+                    dotDirection: direction
+              }]),
+            });        
+      }else if(direction === "right"){
+        this.leftAddedPos = snake[snakeCurrIndex].left - 15;
+        this.topAddedPos = snake[snakeCurrIndex].top;
+        this.setState({
+              snake: this.state.snake.concat([{
+                    id: this.prevDotId += 1,
+                    animation: false,
+                    left: this.leftAddedPos,
+                    top: this.topAddedPos,
+                    color: this.state.color,
+                    dotDirection: direction
+              }]),
+            }); 
+      }else if(direction === "up"){
+        this.leftAddedPos = snake[snakeCurrIndex].left;
+        this.topAddedPos = snake[snakeCurrIndex].top - 15;
+        this.setState({
+              snake: this.state.snake.concat([{
+                    id: this.prevDotId += 1,
+                    animation: false,
+                    left: this.leftAddedPos,
+                    top: this.topAddedPos,
+                    color: this.state.color,
+                    dotDirection: direction
+              }]),
+            }); 
+      }
+    }else{
+      this.setState({
+        snake: this.state.snake.concat([{
+              id: this.prevDotId += 1,
+              animation: true,
+              left: window.innerWidth * 0.5,
+              top: window.innerHeight * 0.5,
+              color: this.state.color,
+              dotDirection: "down"
+        }]),
+      });
+    } 
   }
 
 //Getting number of random dots
@@ -105,10 +166,12 @@ class App extends React.Component {
 
   moveHead = () => {
     this.randomDotsMap();
+    const x = 0;
     if(this.state.dotDirection === "down"){
       const snake = this.state.snake.slice();
-      const topCurr = snake[0].top;
-      snake[0].top = topCurr + 2;
+      const topCurr = snake[x].top;
+      snake[x].top = topCurr + 1;
+      snake[x ].dotDirection = "down";
        this.setState({
           snake: snake
        });
@@ -116,7 +179,8 @@ class App extends React.Component {
     }else if(this.state.dotDirection === "up"){
       const snake = this.state.snake.slice();
       const topCurr = snake[0].top;
-      snake[0].top = topCurr - 2;
+      snake[0].top = topCurr - 1;
+      snake[0].dotDirection = "up";
        this.setState({
           snake: snake
        });
@@ -124,7 +188,8 @@ class App extends React.Component {
     }else if(this.state.dotDirection === "left"){
       const snake = this.state.snake.slice();
       const leftCurr = snake[0].left;
-      snake[0].left = leftCurr - 2;
+      snake[0].left = leftCurr - 1;
+      snake[0].dotDirection = "left";
        this.setState({
           snake: snake
        });
@@ -132,25 +197,14 @@ class App extends React.Component {
     }else if(this.state.dotDirection === "right"){
       const snake = this.state.snake.slice();
       const leftCurr = snake[0].left;
-      snake[0].left = leftCurr + 2;
+      snake[0].left = leftCurr + 1;
+      snake[0].dotDirection = "right";
        this.setState({
           snake: snake
        });
        this.overlapDots();
     }
   }
-
-  //Checking snake with random dot position to see if it hit
-getRandomDotsPosition() {
-  // this.leftDot = this.state.dots.map((left, index) => {
-  //     return [left.left, left.top];
-  // });
-
-  // this.topDot = this.state.dots.map((top, index) => {
-  //     return top.top;
-  // });
-}
-
 
 overlapDots() {
   const snake = this.state.snake;
@@ -159,17 +213,33 @@ overlapDots() {
   const snakePos = [left, top];
   const dots = this.state.dots;
   this.leftDot = this.state.dots.map((dot, index) => {
-    if(left - dot.left <= 2 || left - dot.left >= -2){
-      console.log('hit');
-      return dot.top;
-      if(top - dot.top <= 5 && top - dot.top >= -5 ){
-        console.log('works');
-      }
+    const dotPos = [dot.left, dot.top];
+    console.log("snake: ", left);
+    console.log("dot: ", dot.left);
+    if(this.between(left - dot.left, -5, 5) && this.between(top - dot.top, -5, 5)){
+      console.log('hit', index);
+      this.setState({
+        hitDot: true
+      });
+      return true;
     }
   });
-  
-  // if(top === )
+  if(this.state.hitDot){
+    this.addDot();
+    this.randomDots();
+    this.statePosition();
+    this.randomDotsMap();
+    this.setState({
+      hitDot: false,
+      dotCount: this.state.dotCount + 1
+    });
+  }
 }
+
+  between(x, min, max) {
+    return x>= min && x<= max;
+  }
+
   randomDotsMap() {
     //Map for random dots
     this.ranDots = this.state.dots.map((dot, index) => {
@@ -184,6 +254,8 @@ overlapDots() {
     });
   }
 
+  getSnakeMovePrevious(x) {
+  }
 
   statePosition() {
     const vart = this.state.dots.map((dot, index) => {
