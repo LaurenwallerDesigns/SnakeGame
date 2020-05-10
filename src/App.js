@@ -146,20 +146,6 @@ class App extends React.Component {
     } 
   }
 
-//Getting number of random dots
-  randomDots() {
-    this.ranNum = Math.floor(Math.random() * 50) + 20;
-    this.leftPos = Math.floor(Math.random() * this.rightBoundary);
-    this.topPos = Math.floor(Math.random() * this.bottomBoundary);
-    const arrayFill = {animation: false,
-            left: window.innerWidth * 0.5,
-            top: window.innerHeight * 0.5,
-            color: this.state.color};
-    this.setState({
-      dots: Array(this.ranNum).fill(arrayFill)
-      });
-  }
-
 //Boundaries for the screen
   boundaries() {
     this.topBoundary = window.innerHeight * 0.2;
@@ -208,6 +194,8 @@ overlapDots() {
     return x>= min && x<= max;
   }
 
+//**************************RANDOM DOTS RENDER FUNCTIONS************************************
+
   randomDotsMap() {
     //Map for random dots
     this.ranDots = this.state.dots.map((dot, index) => {
@@ -222,27 +210,84 @@ overlapDots() {
     });
   }
 
+
+//Getting number of random dots number and sets it to the array
+  randomDots() {
+    this.ranNum = Math.floor(Math.random() * 50) + 20;
+    this.leftPos = Math.floor(Math.random() * this.rightBoundary);
+    this.topPos = Math.floor(Math.random() * this.bottomBoundary);
+    const arrayFill = {animation: false,
+            left: window.innerWidth * 0.5,
+            top: window.innerHeight * 0.5,
+            color: this.state.color};
+    this.setState({
+      dots: Array(this.ranNum).fill(arrayFill)
+      });
+  }
+
+// this function is for the random dots. It takes the dots array and maps over them
+// to give them a random left, top and color. then sets it to state.
+
+  statePosition() {
+    const vart = this.state.dots.map((dot, index) => {
+      const left = Math.floor(Math.random() * this.rightBoundary);
+      const top = Math.floor(Math.random() * this.bottomBoundary);
+      const color = Math.floor(Math.random()*16777215).toString(16);
+      console.log(this.rightBoundary)
+      return {
+        animation: dot.animation,
+        index: index,
+        left: left,
+        top: top,
+        color: color
+      }
+    });
+    this.setState({
+      dots: vart
+    });
+  }
+
+
+
+//**************************MOVING SNAKE FUNCTIONS************************************
+
+
+//This function is run in the getSnakeMovePrevious,
+//It takes the index and direction from there. 
+//if the index of dot being checked is 0 then it won't run.
+//Also, if the dots have never changed position it won't run.
+// and it will return the current direction of segment and the current count of Pos
+//If true, then we get the changePos number from the previous segment &
+//use that number to get the correct index of the changeDirection state.
+//It will be tracking the position of the snake[i] and comparing it to
+// the changeDirection[count].
+// if left and top position are the same then it will return the changedDirection, 
+//update the snake[i].changePos
+//If it does not equal the changeDirection[count] then it returns the org direction
+// and current state of snake[i].changePos. 
   snakeEffect(i, d) {
-    if(i > 0 && (this.state.changeDirection.length - 1) > 0){
-      console.log(i);
+    if(i > 0 && (this.state.changeDirection.length - 1) >= 0){
       const snake = this.state.snake.slice();
       const left = snake[i].left;
       const top = snake[i].top;
-      const count = snake[i - 1].changePos - 1;
+      const count = snake[i - 1].changePos;
+      const currCount = snake[i].changePos;
+      const subCounts = count - currCount;
+      const useCount = subCounts > 1 ? snake[i - 1].changePos - (subCounts) : count - 1;
       const cd = this.state.changeDirection.slice();
-      const cdLeft = cd[count].left;
-      const cdTop = cd[count].top;
-      const cdDirection = cd[count].direction;
-      const updateCount = snake[i].changePos + 1;
-      console.log('prevSegCount:',count);
-      console.log('cdLeft:', cdLeft);
-      console.log('cdTop:', cdTop);
-      console.log('cdDirection:', cdDirection);
-      console.log('segLeft:', left);
-      console.log('segTop:', top);
+      const cdLeft = cd[useCount].left;
+      const cdTop = cd[useCount].top;
+      const cdDirection = cd[useCount].direction;
       if(left === cdLeft && top === cdTop){
-        console.log('hit if');
-          return {d: cdDirection, count: updateCount, left: left, top: top, move: 1};
+        const upDateCount = snake[i - 1].changePos;
+        console.log('ran');
+        console.log('index:', i);
+        console.log('left:', left);
+        console.log('top:', top);
+        console.log('cdLeft:', cdLeft);
+        console.log('cdTop:', cdTop);
+        console.log('upDateCount:', upDateCount);
+          return {d: cdDirection, count: upDateCount, left: left, top: top, move: 1};
             
       }else{
         const currCount = this.state.snake[i].changePos;
@@ -259,14 +304,23 @@ overlapDots() {
 
   }
 
+
+//function is set on interval in the change direction function,
+//It takes parameters from the changePositionOfSnake ()
+//i = index, left = leftPositionofi, top = topPositionOfi, d= dotDirection of i,
+//sEffect.d = the direction of snake[i], even before it is changed on state.
+// needed to do this because the state was not changing in time for the dots to continue
+// to move in the right way.
+//When it runs the dots map will render the dots onto page
+//Then it runs the snakeEffect which uses the index and direction of each segment
+//Using the direction it will determine when the dot is to move
+//Then it calls overlapDots to check if the head dot is overlapping a random dot 
+//Lastly, we set the new state of the snake
   getSnakeMovePrevious(i, left, top, d) {
     this.randomDotsMap();
       const snake = this.state.snake.slice();
-      console.log(d);
-      const sEffect = this.snakeEffect(i, d);
-      console.log(sEffect.d);
-      if(sEffect.d === "down"){
-        const snakeEffect = this.snakeEffect(i, d);
+      const snakeEffect = this.snakeEffect(i, d);
+      if(snakeEffect.d === "down"){
           snake[i].dotDirection = snakeEffect.d;
           snake[i].changePos = snakeEffect.count;
           snake[i].left = snakeEffect.left;
@@ -275,9 +329,8 @@ overlapDots() {
           snake:snake
         });
         this.overlapDots();
-      }else if(sEffect.d === "up"){
+      }else if(snakeEffect.d === "up"){
         const snake = this.state.snake.slice();
-        const snakeEffect = this.snakeEffect(i, d);
           snake[i].dotDirection = snakeEffect.d;
           snake[i].changePos = snakeEffect.count;
           snake[i].left = snakeEffect.left;
@@ -286,9 +339,8 @@ overlapDots() {
             snake: snake
          });
          this.overlapDots();
-      }else if(sEffect.d === "left"){
+      }else if(snakeEffect.d === "left"){
         const snake = this.state.snake.slice();
-        const snakeEffect = this.snakeEffect(i, d);
           snake[i].dotDirection = snakeEffect.d;
           snake[i].changePos = snakeEffect.count;
           snake[i].left = snakeEffect.left - snakeEffect.move;
@@ -297,9 +349,8 @@ overlapDots() {
             snake: snake
         });
         this.overlapDots();
-      }else if(sEffect.d === "right"){
+      }else if(snakeEffect.d === "right"){
         const snake = this.state.snake.slice();
-        const snakeEffect = this.snakeEffect(i, d);
           snake[i].dotDirection = snakeEffect.d;
           snake[i].changePos = snakeEffect.count;
           snake[i].left = snakeEffect.left + snakeEffect.move;
@@ -310,6 +361,9 @@ overlapDots() {
         this.overlapDots();
       }
   }
+
+//this function is the interval that is continuiously running. 
+//it maps over the snake array and sends the infomation to the getSnakeMovePrevious
 
   changePositionOfSnake() {
     const newSnakeArray = this.state.snake.map((seg, index) => {
@@ -322,26 +376,12 @@ overlapDots() {
     });
   }
 
-  statePosition() {
-    const vart = this.state.dots.map((dot, index) => {
-      const left = Math.floor(Math.random() * this.rightBoundary);
-      const top = Math.floor(Math.random() * this.bottomBoundary);
-      const color = Math.floor(Math.random()*16777215).toString(16);
-      return {
-        animation: dot.animation,
-        index: index,
-        left: left,
-        top: top,
-        color: color
-      }
-    });
-    this.setState({
-      dots: vart
-    });
-
-  }
-
-
+//This function is triggered when the left arrow is pressed.
+//it clears previous interval, then checks if the dotDirection is 'right'
+//if true then changes to this.changeDown().
+//if false, then sets the snake[0].left, top and direction to a new array concated
+//onto the changeDirection key. Changes the dotDirection of the headSnake. 
+// setState and restarts interval.
   changeLeft() {
     clearInterval(this.interval);
     const snake = this.state.snake.slice();
@@ -361,9 +401,16 @@ overlapDots() {
           direction: "left"
         }]),
       });
-          this.interval = setInterval(this.changePositionOfSnake, 100);
+      this.interval = setInterval(this.changePositionOfSnake, 100);
     }
   }
+
+//This function is triggered when the right arrow is pressed.
+//it clears previous interval, then checks if the dotDirection is 'left'
+//if true then changes to this.changeUp().
+//if false, then sets the snake[0].left, top and direction to a new array concated
+//onto the changeDirection key. Changes the dotDirection of the headSnake. 
+// setState and restarts interval.
 
   changeRight() {
     clearInterval(this.interval);
@@ -389,6 +436,13 @@ overlapDots() {
     this.interval = setInterval(this.changePositionOfSnake, 100);
   }
 
+//This function is triggered when the up arrow is pressed.
+//it clears previous interval, then checks if the dotDirection is 'down'
+//if true then changes to this.changeLeft().
+//if false, then sets the snake[0].left, top and direction to a new array concated
+//onto the changeDirection key. Changes the dotDirection of the headSnake. 
+// setState and restarts interval.
+
   changeUp() {
     clearInterval(this.interval);
     const snake = this.state.snake.slice();
@@ -412,6 +466,12 @@ overlapDots() {
     this.interval = setInterval(this.changePositionOfSnake, 100);
   }
 
+//This function is triggered when the down arrow is pressed.
+//it clears previous interval, then checks if the dotDirection is 'up'
+//if true then changes to this.changeRight().
+//if false, then sets the snake[0].left, top and direction to a new array concated
+//onto the changeDirection key. Changes the dotDirection of the headSnake. 
+// setState and restarts interval.
   changeDown() {
     clearInterval(this.interval);
     const snake = this.state.snake.slice();
@@ -435,19 +495,24 @@ overlapDots() {
     this.interval = setInterval(this.changePositionOfSnake, 100);
   }
 
-  pauseGame() {
-    clearInterval(this.interval);
+  pauseGame(key) {
     this.setState({
-      pauseGame: true
+      pauseGame: !this.state.pauseGame
     });
-  }
 
+    if(this.state.pauseGame === true){
+      clearInterval(this.interval);
+    }else{
+      this.interval = setInterval(this.changePositionOfSnake, 100);
+    }
+  }
 
   movingDot(evt) {
     switch (evt.keyCode) {
       //left arrow
       case 37: 
       clearInterval(this.startInterval);
+      console.log(evt.keyCode);
         this.changeLeft();
       break;
 
@@ -470,9 +535,9 @@ overlapDots() {
       break;
 
       case 13:
-      clearInterval(this.interval);
-
-      this.pauseGame();
+      //
+      clearInterval(this.startInterval);
+      this.pauseGame(evt.keyCode);
       break;
     }
   }
