@@ -17,6 +17,7 @@ class App extends React.Component {
       dots: [],
       //SNAKE
       snake: [],
+      changeDirection: [],
       color: "#000000",
       //TITLE BAR STATE
       livesCount: 3,
@@ -25,9 +26,10 @@ class App extends React.Component {
       dotCount: 1,
       levelUpGoal: 10,
       hitBoundary: false,
-      dotDirection: "",
+      dotDirection: "down",
       pauseGame: false,
       randomDotsCount: 0,
+      snakeCount: 0
 
     };
     this.startGame = this.startGame.bind(this);
@@ -36,7 +38,6 @@ class App extends React.Component {
     this.randomDotsMap = this.randomDotsMap.bind(this);
     this.boundaries = this.boundaries.bind(this);
     this.movingDot = this.movingDot.bind(this);
-    this.moveHead = this.moveHead.bind(this);
     this.changeLeft = this.changeLeft.bind(this);
     this.changeRight = this.changeRight.bind(this);
     this.changeUp = this.changeUp.bind(this);
@@ -46,6 +47,8 @@ class App extends React.Component {
     this.statePosition = this.statePosition.bind(this);
     this.between = this.between.bind(this);
     this.getSnakeMovePrevious = this.getSnakeMovePrevious.bind(this);
+    this.changePositionOfSnake = this.changePositionOfSnake.bind(this);
+    this.snakeEffect = this.snakeEffect.bind(this);
   }
 
   componentDidMount() {
@@ -53,7 +56,6 @@ class App extends React.Component {
     this.randomDots();
     this.boundaries();
     window.addEventListener('keydown', this.movingDot);
-    this.index = 0;
   }
 
 
@@ -67,6 +69,7 @@ class App extends React.Component {
       const snakeLength = snake[snake.length - 1];
       const snakeCurrIndex = snake.indexOf(snakeLength);
       const direction = snake[snakeCurrIndex].dotDirection;
+      const changePos = snake[snakeCurrIndex].changePos;
       if(direction === "down"){
         this.leftAddedPos = snake[snakeCurrIndex].left;
         this.topAddedPos = snake[snakeCurrIndex].top - 15;
@@ -77,8 +80,10 @@ class App extends React.Component {
                     left: this.leftAddedPos,
                     top: this.topAddedPos,
                     color: this.state.color,
-                    dotDirection: direction
+                    dotDirection: direction,
+                    changePos: changePos
               }]),
+              hitDot: false
             });
       }else if(direction === "left"){
         this.leftAddedPos = snake[snakeCurrIndex].left + 15;
@@ -90,8 +95,10 @@ class App extends React.Component {
                     left: this.leftAddedPos,
                     top: this.topAddedPos,
                     color: this.state.color,
-                    dotDirection: direction
+                    dotDirection: direction,
+                    changePos: changePos
               }]),
+              hitDot: false
             });        
       }else if(direction === "right"){
         this.leftAddedPos = snake[snakeCurrIndex].left - 15;
@@ -103,12 +110,14 @@ class App extends React.Component {
                     left: this.leftAddedPos,
                     top: this.topAddedPos,
                     color: this.state.color,
-                    dotDirection: direction
+                    dotDirection: direction,
+                    changePos: changePos
               }]),
+              hitDot: false
             }); 
       }else if(direction === "up"){
         this.leftAddedPos = snake[snakeCurrIndex].left;
-        this.topAddedPos = snake[snakeCurrIndex].top - 15;
+        this.topAddedPos = snake[snakeCurrIndex].top + 15;
         this.setState({
               snake: this.state.snake.concat([{
                     id: this.prevDotId += 1,
@@ -116,8 +125,10 @@ class App extends React.Component {
                     left: this.leftAddedPos,
                     top: this.topAddedPos,
                     color: this.state.color,
-                    dotDirection: direction
+                    dotDirection: direction,
+                    changePos: changePos
               }]),
+              hitDot: false
             }); 
       }
     }else{
@@ -128,7 +139,8 @@ class App extends React.Component {
               left: window.innerWidth * 0.5,
               top: window.innerHeight * 0.5,
               color: this.state.color,
-              dotDirection: "down"
+              dotDirection: "down",
+              changePos: 0
         }]),
       });
     } 
@@ -136,7 +148,7 @@ class App extends React.Component {
 
 //Getting number of random dots
   randomDots() {
-    this.ranNum = Math.floor(Math.random() * 20) + 1;
+    this.ranNum = Math.floor(Math.random() * 50) + 20;
     this.leftPos = Math.floor(Math.random() * this.rightBoundary);
     this.topPos = Math.floor(Math.random() * this.bottomBoundary);
     const arrayFill = {animation: false,
@@ -162,49 +174,9 @@ class App extends React.Component {
       game: true
     });
     this.statePosition();
+    this.startInterval = setInterval(this.changePositionOfSnake, 100);
   }
 
-  moveHead = () => {
-    this.randomDotsMap();
-    const x = 0;
-    if(this.state.dotDirection === "down"){
-      const snake = this.state.snake.slice();
-      const topCurr = snake[x].top;
-      snake[x].top = topCurr + 1;
-      snake[x ].dotDirection = "down";
-       this.setState({
-          snake: snake
-       });
-       this.overlapDots();
-    }else if(this.state.dotDirection === "up"){
-      const snake = this.state.snake.slice();
-      const topCurr = snake[0].top;
-      snake[0].top = topCurr - 1;
-      snake[0].dotDirection = "up";
-       this.setState({
-          snake: snake
-       });
-       this.overlapDots();
-    }else if(this.state.dotDirection === "left"){
-      const snake = this.state.snake.slice();
-      const leftCurr = snake[0].left;
-      snake[0].left = leftCurr - 1;
-      snake[0].dotDirection = "left";
-       this.setState({
-          snake: snake
-       });
-       this.overlapDots();
-    }else if(this.state.dotDirection === "right"){
-      const snake = this.state.snake.slice();
-      const leftCurr = snake[0].left;
-      snake[0].left = leftCurr + 1;
-      snake[0].dotDirection = "right";
-       this.setState({
-          snake: snake
-       });
-       this.overlapDots();
-    }
-  }
 
 overlapDots() {
   const snake = this.state.snake;
@@ -214,10 +186,7 @@ overlapDots() {
   const dots = this.state.dots;
   this.leftDot = this.state.dots.map((dot, index) => {
     const dotPos = [dot.left, dot.top];
-    console.log("snake: ", left);
-    console.log("dot: ", dot.left);
     if(this.between(left - dot.left, -5, 5) && this.between(top - dot.top, -5, 5)){
-      console.log('hit', index);
       this.setState({
         hitDot: true
       });
@@ -230,7 +199,6 @@ overlapDots() {
     this.statePosition();
     this.randomDotsMap();
     this.setState({
-      hitDot: false,
       dotCount: this.state.dotCount + 1
     });
   }
@@ -254,7 +222,104 @@ overlapDots() {
     });
   }
 
-  getSnakeMovePrevious(x) {
+  snakeEffect(i, d) {
+    if(i > 0 && (this.state.changeDirection.length - 1) > 0){
+      console.log(i);
+      const snake = this.state.snake.slice();
+      const left = snake[i].left;
+      const top = snake[i].top;
+      const count = snake[i - 1].changePos - 1;
+      const cd = this.state.changeDirection.slice();
+      const cdLeft = cd[count].left;
+      const cdTop = cd[count].top;
+      const cdDirection = cd[count].direction;
+      const updateCount = snake[i].changePos + 1;
+      console.log('prevSegCount:',count);
+      console.log('cdLeft:', cdLeft);
+      console.log('cdTop:', cdTop);
+      console.log('cdDirection:', cdDirection);
+      console.log('segLeft:', left);
+      console.log('segTop:', top);
+      if(left === cdLeft && top === cdTop){
+        console.log('hit if');
+          return {d: cdDirection, count: updateCount, left: left, top: top, move: 1};
+            
+      }else{
+        const currCount = this.state.snake[i].changePos;
+        const top = this.state.snake[i].top;
+        const left = this.state.snake[i].left;
+          return {d: d, count: currCount, top: top, left: left, move: 1};
+      }
+    }else {
+      const currCount = this.state.snake[i].changePos;
+      const top = this.state.snake[i].top;
+      const left = this.state.snake[i].left;
+        return {d: d, count: currCount, left: left, top: top, move: 1};
+    }
+
+  }
+
+  getSnakeMovePrevious(i, left, top, d) {
+    this.randomDotsMap();
+      const snake = this.state.snake.slice();
+      console.log(d);
+      const sEffect = this.snakeEffect(i, d);
+      console.log(sEffect.d);
+      if(sEffect.d === "down"){
+        const snakeEffect = this.snakeEffect(i, d);
+          snake[i].dotDirection = snakeEffect.d;
+          snake[i].changePos = snakeEffect.count;
+          snake[i].left = snakeEffect.left;
+          snake[i].top = snakeEffect.top + snakeEffect.move;
+        this.setState({
+          snake:snake
+        });
+        this.overlapDots();
+      }else if(sEffect.d === "up"){
+        const snake = this.state.snake.slice();
+        const snakeEffect = this.snakeEffect(i, d);
+          snake[i].dotDirection = snakeEffect.d;
+          snake[i].changePos = snakeEffect.count;
+          snake[i].left = snakeEffect.left;
+          snake[i].top = snakeEffect.top - snakeEffect.move;
+         this.setState({
+            snake: snake
+         });
+         this.overlapDots();
+      }else if(sEffect.d === "left"){
+        const snake = this.state.snake.slice();
+        const snakeEffect = this.snakeEffect(i, d);
+          snake[i].dotDirection = snakeEffect.d;
+          snake[i].changePos = snakeEffect.count;
+          snake[i].left = snakeEffect.left - snakeEffect.move;
+          snake[i].top = snakeEffect.top;
+        this.setState({
+            snake: snake
+        });
+        this.overlapDots();
+      }else if(sEffect.d === "right"){
+        const snake = this.state.snake.slice();
+        const snakeEffect = this.snakeEffect(i, d);
+          snake[i].dotDirection = snakeEffect.d;
+          snake[i].changePos = snakeEffect.count;
+          snake[i].left = snakeEffect.left + snakeEffect.move;
+          snake[i].top = snakeEffect.top;
+        this.setState({
+          snake: snake
+        });
+        this.overlapDots();
+      }
+  }
+
+  changePositionOfSnake() {
+    const newSnakeArray = this.state.snake.map((seg, index) => {
+      const left = seg.left;
+      const top = seg.top;
+      const direction = seg.dotDirection;
+      this.direction = seg.dotDirection;
+      this.getSnakeMovePrevious(index, left, top, direction);
+            return direction;
+    });
   }
 
   statePosition() {
@@ -279,34 +344,95 @@ overlapDots() {
 
   changeLeft() {
     clearInterval(this.interval);
-    this.setState({
-      dotDirection: "left"
-    });
-    this.interval = setInterval(this.moveHead, 100);
+    const snake = this.state.snake.slice();
+    if(snake[0].dotDirection === "right"){
+      this.changeDown();
+    }else {
+      const hLeft = snake[0].left;
+      const hTop = snake[0].top;
+      snake[0].dotDirection = "left";
+      const currPos = snake[0].changePos;
+      snake[0].changePos = currPos + 1;
+      this.setState({
+        snake: snake,
+        changeDirection: this.state.changeDirection.concat([{
+          left: hLeft,
+          top: hTop,
+          direction: "left"
+        }]),
+      });
+          this.interval = setInterval(this.changePositionOfSnake, 100);
+    }
   }
 
   changeRight() {
     clearInterval(this.interval);
-    this.setState({
-      dotDirection: "right"
-    });
-    this.interval = setInterval(this.moveHead, 100);
+    const snake = this.state.snake.slice();
+    if(snake[0].dotDirection === "left"){
+      this.changeUp();
+    }else {
+      const hLeft = snake[0].left;
+      const hTop = snake[0].top;
+      const currPos = snake[0].changePos;
+      snake[0].changePos = currPos + 1;
+      snake[0].dotDirection = "right";
+
+      this.setState({
+        snake: snake,
+        changeDirection: this.state.changeDirection.concat([{
+          left: hLeft,
+          top: hTop,
+          direction: "right"
+        }]),
+      });
+    }
+    this.interval = setInterval(this.changePositionOfSnake, 100);
   }
 
   changeUp() {
     clearInterval(this.interval);
-    this.setState({
-      dotDirection: "up"
-    });
-    this.interval = setInterval(this.moveHead, 100);
+    const snake = this.state.snake.slice();
+    if(snake[0].dotDirection === "down"){
+      this.changeLeft();
+    }else {
+      const hLeft = snake[0].left;
+      const hTop = snake[0].top;
+      const currPos = snake[0].changePos;
+      snake[0].changePos = currPos + 1;
+      snake[0].dotDirection = "up";
+      this.setState({
+        snake: snake,
+        changeDirection: this.state.changeDirection.concat([{
+            left: hLeft,
+            top: hTop,
+            direction: "up"
+          }]),
+      });
+    }
+    this.interval = setInterval(this.changePositionOfSnake, 100);
   }
 
   changeDown() {
     clearInterval(this.interval);
-    this.setState({
-      dotDirection: "down"
-    });
-    this.interval = setInterval(this.moveHead, 100);
+    const snake = this.state.snake.slice();
+    if(snake[0].dotDirection === "up"){
+      this.changeRight();
+    }else {
+      const hLeft = snake[0].left;
+      const hTop = snake[0].top;
+      const currPos = snake[0].changePos;
+      snake[0].changePos = currPos + 1;
+      snake[0].dotDirection = "down";
+      this.setState({
+        snake: snake,
+        changeDirection: this.state.changeDirection.concat([{
+            left: hLeft,
+            top: hTop,
+            direction: "down"
+          }]),
+      });
+    }
+    this.interval = setInterval(this.changePositionOfSnake, 100);
   }
 
   pauseGame() {
@@ -321,25 +447,31 @@ overlapDots() {
     switch (evt.keyCode) {
       //left arrow
       case 37: 
+      clearInterval(this.startInterval);
         this.changeLeft();
       break;
 
       //right arrow
       case 39:
+      clearInterval(this.startInterval);
       this.changeRight();
       break;
 
       //up arrow
       case 38:
+      clearInterval(this.startInterval);
       this.changeUp();
       break;
 
       //down arrow
       case 40:
+      clearInterval(this.startInterval);
       this.changeDown();
       break;
 
       case 13:
+      clearInterval(this.interval);
+
       this.pauseGame();
       break;
     }
