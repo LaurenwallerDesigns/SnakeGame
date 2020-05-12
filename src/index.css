@@ -71,6 +71,7 @@ code {
 	animation-iteration-count: infinite;
 }
 
+
 /*Blinking Animation*/
 @keyframes circleBlinking {
 	0% {
@@ -90,6 +91,26 @@ code {
 	}
 }
 
+
+/*Blinking Animation*/
+@keyframes blinkingBorder {
+	0% {
+		border: #C9172B 3px solid;
+	}
+	25% {
+		border: none;
+	}
+	50% {
+		border: #C9172B 3px solid;
+	}
+	75% {
+		border: none;
+	}
+	100% {
+		border: #C9172B 3px solid;
+	}
+}
+
 @keyframes slideIn {
 	0%{
 		top:-75px;
@@ -99,10 +120,47 @@ code {
 	}
 }
 
-.moveLeft{
-	transform: translate(-900px, 0);
+@keyframes slideOut {
+	0%{
+		top:0px;
+	}
+	100%{
+		top: -75px;
+	}
 }
 
-.moveUp{
-	transform: translate(0, -900px);
+.slideUpAnimation{
+	animation: slideIn 1s 1;
+	animation-delay:0s;
+}
+
+.slideOutAnimation{
+	animation: slideOut 1s 1;
+	animation-delay: 1s;
+}
+
+.level{
+	font-size: 185px;
+	color: #eee;
+	text-align: center;
+}
+
+.life{
+	font-size: 185px;
+	color: #C9172B;
+	text-align: center;
+}
+
+.redBorder{
+	animation: blinkingBorder .03s infinite;
+}
+
+p{
+	margin: 0;
+}
+
+#game-board{
+	border: #eee 3px solid;
+	margin-left: auto;
+	margin-right: auto;
 }
