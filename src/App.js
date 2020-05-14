@@ -8,6 +8,7 @@ import TitleBar from './components/TitleBar';
 import PauseDisplay from './components/PauseDisplay';
 import GoalMade from './components/GoalMade';
 import LoseLife from './components/LoseLife';
+import GameOver from './components/GameOver';
 
 class App extends React.Component {
   constructor(props) {
@@ -88,10 +89,10 @@ class App extends React.Component {
       const snakeLength = snake[snake.length - 1];
       const snakeCurrIndex = snake.indexOf(snakeLength);
       const direction = snake[snakeCurrIndex].dotDirection;
-      const movesIndex = snake[snakeCurrIndex].movesIndex - 1;
+      const changePos = snake[snakeCurrIndex].changePos;
       if(direction === "down"){
-        this.leftAddedPos = this.state.moves[movesIndex].left;
-        this.topAddedPos = this.state.moves[movesIndex].top - 15;
+        this.leftAddedPos = snake[snakeCurrIndex].left;
+        this.topAddedPos = snake[snakeCurrIndex].top - 15;
         this.setState({
               snake: this.state.snake.concat([{
                     id: this.prevDotId += 1,
@@ -100,13 +101,13 @@ class App extends React.Component {
                     top: this.topAddedPos,
                     color: this.state.color,
                     dotDirection: direction,
-                    movesIndex: movesIndex
+                    changePos: changePos
               }]),
               hitDot: false
-            }); 
+            });
       }else if(direction === "left"){
-        this.leftAddedPos = this.state.moves[movesIndex].left - 15;
-        this.topAddedPos = this.state.moves[movesIndex].top;
+        this.leftAddedPos = snake[snakeCurrIndex].left + 15;
+        this.topAddedPos = snake[snakeCurrIndex].top;
         this.setState({
               snake: this.state.snake.concat([{
                     id: this.prevDotId += 1,
@@ -115,13 +116,13 @@ class App extends React.Component {
                     top: this.topAddedPos,
                     color: this.state.color,
                     dotDirection: direction,
-                    movesIndex: movesIndex
+                    changePos: changePos
               }]),
               hitDot: false
-            });         
+            });        
       }else if(direction === "right"){
-        this.leftAddedPos = this.state.moves[movesIndex].left + 15;
-        this.topAddedPos = this.state.moves[movesIndex].top;
+        this.leftAddedPos = snake[snakeCurrIndex].left - 15;
+        this.topAddedPos = snake[snakeCurrIndex].top;
         this.setState({
               snake: this.state.snake.concat([{
                     id: this.prevDotId += 1,
@@ -130,13 +131,13 @@ class App extends React.Component {
                     top: this.topAddedPos,
                     color: this.state.color,
                     dotDirection: direction,
-                    movesIndex: movesIndex
+                    changePos: changePos
               }]),
               hitDot: false
             }); 
       }else if(direction === "up"){
-        this.leftAddedPos = this.state.moves[movesIndex].left;
-        this.topAddedPos = this.state.moves[movesIndex].top + 15;
+        this.leftAddedPos = snake[snakeCurrIndex].left;
+        this.topAddedPos = snake[snakeCurrIndex].top + 15;
         this.setState({
               snake: this.state.snake.concat([{
                     id: this.prevDotId += 1,
@@ -145,7 +146,7 @@ class App extends React.Component {
                     top: this.topAddedPos,
                     color: this.state.color,
                     dotDirection: direction,
-                    movesIndex: movesIndex
+                    changePos: changePos
               }]),
               hitDot: false
             }); 
@@ -159,13 +160,8 @@ class App extends React.Component {
               top: window.innerHeight * 0.5,
               color: this.state.color,
               dotDirection: "down",
-              movesIndex: 0
+              changePos: -1
         }]),
-        moves:[{
-                left: window.innerWidth * 0.5,
-                top: window.innerHeight * 0.5,
-                direction: 'down'
-              }],
       });
     } 
   }
@@ -212,13 +208,18 @@ class App extends React.Component {
         this.changePositionOfSnake();
         const direction = this.state.snake[0].dotDirection;
         if(this.state.livesCount > 0){
-          this.subALife();
+          this.setState({
+            hitBoundary: false,
+            loseLife: true
+          });
+          setTimeout(this.subALife, 1000);
         }else{
           this.setState({
-            color: "#C9172B",
+            hitBoundary: false,
             gameOver: true
           });
-          setTimeout(this.endOfGame, 2000);
+          clearInterval(this.startInterval);
+          setTimeout(this.endOfGame, 1000);
         }
       }else {
       this.setState({
@@ -229,7 +230,7 @@ class App extends React.Component {
 
   subALife(i) {
     this.setState({
-      hitBoundary: false
+      loseLife: false
     });
 
     this.pauseGame();
@@ -240,13 +241,9 @@ class App extends React.Component {
     const snake = this.state.snake[0];
     this.setState({
       pauseGame: true,
-      game: false,
-      level: 1,
-      dotCount: 1,
-      snake: snake,
-      lives: 3,
-      speed: 100
+      game: false
     });
+    window.location.reload();
   }
 
 //Onclick to start game
@@ -299,7 +296,7 @@ overlapDots() {
       clearInterval(this.startInterval);
       this.probablity();
       const newLevel = this.state.level + 1;
-      const newGoal = this.state.levelUpGoal * newLevel;
+      const newGoal = newLevel * newLevel + 10;
       this.setState({
         pauseGame: true,
         level: newLevel,
@@ -439,14 +436,41 @@ overlapDots() {
 //update the snake[i].changePos
 //If it does not equal the changeDirection[count] then it returns the org direction
 // and current state of snake[i].changePos. 
-  snakeEffect(i) {
+  snakeEffect(i, d) {
     const snake = this.state.snake.slice();
-    const dd = snake[0].dotDirection;
-      const left = dd === 'left' ? snake[0].left - 1 : dd === 'right' ? snake[0].left + 1 : snake[0].left;
-      const top = dd === "down" ? snake[0].top + 1 : dd === "up" ? snake[0].top - 1 : snake[0].top;
-      const direction = dd;
-
-      return {direction, left, top};
+    if(i > 0){
+      const iCount = snake[i].changePos;
+      const pCount = snake[i - 1].changePos;
+      const subCounts = pCount - iCount;
+      if(subCounts > 0){
+        const left = snake[i].left;
+        const top = snake[i].top;
+        const currCount = snake[i].changePos + 1;
+        const cd = this.state.changeDirection.slice();
+        const cdLeft = cd[currCount].left;
+        const cdTop = cd[currCount].top;
+        const cdDirection = cd[currCount].direction;
+        if(left === cdLeft && top === cdTop){
+          const upDateCount = currCount;
+            return {d: cdDirection, count: upDateCount, left: cdLeft, top: cdTop, move: this.state.hitBoundary ? -250 : 1};
+        }else{
+          const currCount = this.state.snake[i].changePos;
+          const top = this.state.snake[i].top;
+          const left = this.state.snake[i].left;
+            return {d: d, count: currCount, top: top, left: left, move: this.state.hitBoundary ? -250 : 1};
+        }
+      }else{
+        const currCount = this.state.snake[i].changePos;
+        const top = this.state.snake[i].top;
+        const left = this.state.snake[i].left;
+          return {d: d, count: currCount, top: top, left: left, move: this.state.hitBoundary ? -250 : 1};
+      }
+    }else {
+      const currCount = this.state.snake[i].changePos;
+      const top = this.state.snake[i].top;
+      const left = this.state.snake[i].left;
+        return {d: d, count: currCount, left: left, top: top, move: this.state.hitBoundary ? -250 : 1};
+    }
   }
 
 
@@ -461,38 +485,20 @@ overlapDots() {
 //Using the direction it will determine when the dot is to move
 //Then it calls overlapDots to check if the head dot is overlapping a random dot 
 //Lastly, we set the new state of the snake
-  getSnakeMovePrevious(i) {
+  getSnakeMovePrevious(i, left, top, d) {
     this.randomDotsMap();
+      console.log('ran:', i);
       const snake = this.state.snake.slice();
-      const snakeEffect = this.snakeEffect();
-      const moves = this.state.moves.slice();
-
-      if(i < 1){
-        snake[i].left = snakeEffect.left;
-        snake[i].top = snakeEffect.top;
-        snake[i].movesIndex = moves.length - 1;
-
+      const snakeEffect = this.snakeEffect(i, d);
+          snake[i].dotDirection = snakeEffect.d;
+          snake[i].changePos = snakeEffect.count;
+          snake[i].left = snakeEffect.d === 'left' ? snakeEffect.left - snakeEffect.move : snakeEffect.d === 'right' ? snakeEffect.left + snakeEffect.move : snakeEffect.left;
+          snake[i].top = snakeEffect.d === 'down' ? snakeEffect.top + snakeEffect.move : snakeEffect.d === 'up' ? snakeEffect.top - snakeEffect.move : snakeEffect.top;
         this.setState({
-          snake: snake,
-          moves: moves.concat([{
-            left: snakeEffect.left,
-            top: snakeEffect.top,
-            direction: snakeEffect.direction
-          }]),
+          snake:snake
         });
-      }else {
-        const snakeMovesIndex = snake[i].movesIndex;
-        const numMove = (15 * i);
-          snake[i].dotDirection = moves[snakeMovesIndex].direction;
-          snake[i].left = snake[i].dotDirection === "left" ? moves[snakeMovesIndex].left + (numMove) : snake[i].dotDirection === "right" ? moves[snakeMovesIndex].left - (numMove) : moves[snakeMovesIndex].left;
-          snake[i].top = snake[i].dotDirection === "down" ? moves[snakeMovesIndex].top - (numMove) : snake[i].dotDirection === "up" ? moves[snakeMovesIndex].top + (numMove) : moves[snakeMovesIndex].top ;
-          snake[i].movesIndex = snake[0].movesIndex - i;
-        this.setState({
-          snake: snake
-        });
-      }
         this.overlapDots();
-        this.boundaries();
+        this.boundaries(i);
   }
 
 //this function is the interval that is continuiously running. 
@@ -500,8 +506,12 @@ overlapDots() {
 
   changePositionOfSnake() {
       const newSnakeArray = this.state.snake.map((seg, index) => {
-        this.getSnakeMovePrevious(index);
-              return index;
+        const left = seg.left;
+        const top = seg.top;
+        const direction = seg.dotDirection;
+        this.direction = seg.dotDirection;
+        this.getSnakeMovePrevious(index, left, top, direction);
+              return direction;
       });
   }
 
@@ -516,9 +526,18 @@ overlapDots() {
     if(snake[0].dotDirection === "right"){
       this.changeDown();
     }else {
+      const hLeft = snake[0].left;
+      const hTop = snake[0].top;
       snake[0].dotDirection = "left";
+      const currPos = snake[0].changePos;
+      snake[0].changePos = currPos + 1;
       this.setState({
-        snake: snake
+        snake: snake,
+        changeDirection: this.state.changeDirection.concat([{
+          left: hLeft,
+          top: hTop,
+          direction: "left"
+        }]),
       });
       //this.interval = setInterval(this.changePositionOfSnake, 100);
     }
@@ -536,10 +555,19 @@ overlapDots() {
     if(snake[0].dotDirection === "left"){
       this.changeUp();
     }else {
+      const hLeft = snake[0].left;
+      const hTop = snake[0].top;
+      const currPos = snake[0].changePos;
+      snake[0].changePos = currPos + 1;
       snake[0].dotDirection = "right";
 
       this.setState({
-        snake: snake
+        snake: snake,
+        changeDirection: this.state.changeDirection.concat([{
+          left: hLeft,
+          top: hTop,
+          direction: "right"
+        }]),
       });
     }
     //this.interval = setInterval(this.changePositionOfSnake, 100);
@@ -557,9 +585,18 @@ overlapDots() {
     if(snake[0].dotDirection === "down"){
       this.changeLeft();
     }else {
+      const hLeft = snake[0].left;
+      const hTop = snake[0].top;
+      const currPos = snake[0].changePos;
+      snake[0].changePos = currPos + 1;
       snake[0].dotDirection = "up";
       this.setState({
-        snake: snake
+        snake: snake,
+        changeDirection: this.state.changeDirection.concat([{
+            left: hLeft,
+            top: hTop,
+            direction: "up"
+          }]),
       });
     }
     //this.interval = setInterval(this.changePositionOfSnake, 100);
@@ -577,9 +614,18 @@ overlapDots() {
     if(snake[0].dotDirection === "up"){
       this.changeRight();
     }else {
+      const hLeft = snake[0].left;
+      const hTop = snake[0].top;
+      const currPos = snake[0].changePos;
+      snake[0].changePos = currPos + 1;
       snake[0].dotDirection = "down";
       this.setState({
-        snake: snake
+        snake: snake,
+        changeDirection: this.state.changeDirection.concat([{
+            left: hLeft,
+            top: hTop,
+            direction: "down"
+          }]),
       });
     }
     //this.interval = setInterval(this.changePositionOfSnake, 100);
@@ -601,22 +647,22 @@ overlapDots() {
     switch (evt.keyCode) {
       //left arrow
       case 37: 
-        this.changeLeft();
+        setTimeout(this.changeLeft, this.state.speed);
       break;
 
       //right arrow
       case 39:
-      this.changeRight();
+      setTimeout(this.changeRight, this.state.speed);
       break;
 
       //up arrow
       case 38:
-      this.changeUp();
+      setTimeout(this.changeUp, this.state.speed);
       break;
 
       //down arrow
       case 40:
-      this.changeDown();
+      setTimeout(this.changeDown, this.state.speed);
       break;
 
       case 13:
@@ -642,6 +688,10 @@ overlapDots() {
                       level={this.state.level}
                       />
     const loseLife = <LoseLife />
+
+    const gameOver = <GameOver />
+
+    const pauseGame = <PauseDisplay />
     // if(this.state.pauseGame){
     //   var pause = <PauseDisplay />;
     // }else{
@@ -658,7 +708,9 @@ overlapDots() {
                 dotCount={this.state.dotCount}
                 levelUpGoal={this.state.levelUpGoal} />
                 {this.state.madeGoal ? madeGoal : ''}
-                {this.state.hitBoundary ? loseLife : ''}
+                {this.state.loseLife ? loseLife : ''}
+                {this.state.gameOver ? gameOver : ''}
+                {this.state.pauseGame ? pauseGame : ''}
               <div id="game-board" className={this.state.closeCall ? 'redBorder' : ''} style={{height: this.height + 'px', width: this.width + 'px'}} >
                 <div id="snake">
                   {snake}

@@ -42,7 +42,7 @@ code {
 	position:absolute;
 	width:75px;
 	padding:3px;
-	left:30px;
+	left:2px;
 	background-color: #444;
 	color:#ffffff;
 	animation-name: slideIn;
@@ -145,7 +145,16 @@ code {
 	text-align: center;
 }
 
-.life{
+.pause-display{
+	position: absolute;
+	top: 20%;
+	left: 20%;
+	font-size: 105px;
+	color: #444;
+	text-align: center;
+}
+
+.lifeLost, .GameOver{
 	font-size: 185px;
 	color: #C9172B;
 	text-align: center;
