@@ -38,7 +38,7 @@ class App extends React.Component {
       levelType: "easy",
       position: [],
       dotCount: 1,
-      speed: 100,
+      speed: 30,
       levelUpGoal: 5,
       hitBoundary: false,
       dotDirection: "down",
@@ -47,7 +47,8 @@ class App extends React.Component {
       snakeCount: 0,
       closeCall: false,
       icons: [],
-      iconProb: 4
+      iconProb: 4,
+      activeIcon: false
 
     };
     this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
@@ -78,6 +79,7 @@ class App extends React.Component {
     this.boundaryChangePoints = this.boundaryChangePoints.bind(this);
     this.renderIcons = this.renderIcons.bind(this);
     this.undoPower = this.undoPower.bind(this);
+    this.noBounds = this.noBounds.bind(this);
   }
 
   componentDidMount() {
@@ -203,17 +205,35 @@ class App extends React.Component {
     const left = snake[0].left;
     const top = snake[0].top;
   if(this.state.boundaries === "disabled"){
-    if(left <= 5 || left >= this.width -5 || top <= 5 || top >= this.height + 5){
+    if(left <= 30 || left >= this.width - 5 || top <= 40 || top >= this.height + 5){
       const d = snake[0].dotDirection;
+      console.log('hit');
       if(d === "down"){
-        this.changeLeft();
+        this.setState({
+          hitBoundary: true,
+          pauseGame: true
+        });
+        this.boundaryChangePoints();
       }else if(d === "up"){
-        this.changeRight();
+        this.setState({
+          hitBoundary: true,
+          pauseGame: true
+        });
+        this.boundaryChangePoints();
       }else if(d === "right"){
-        this.changeDown();
+        this.setState({
+          hitBoundary: true,
+          pauseGame: true
+        });
+        this.boundaryChangePoints();
       }else if(d === "left"){
-        this.changeUp();
+        this.setState({
+          hitBoundary: true,
+          pauseGame: true
+        });
+        this.boundaryChangePoints();
       }
+      setTimeout(this.noBounds, 100);
     }
   }else{
       if(this.between(left, 1, 30) || this.between(left, this.width - 30, this.width - 1) || this.between(top, 1, 30) || this.between(top, this.height - 30, this.height - 1)){
@@ -254,6 +274,14 @@ class App extends React.Component {
     }
   }
 
+
+noBounds() {
+  this.setState({
+    pauseGame: false,
+    hitBoundary: false
+  });
+  this.changePositionOfSnake();
+}
   subALife(i) {
     this.setState({
       loseLife: false,
@@ -286,21 +314,22 @@ class App extends React.Component {
 
 overlapIcons() {
   const snake = this.state.snake;
+  const d = snake[0].dotDirection;
   const left = snake[0].left;
   const top = snake[0].top;
   this.iconHit = this.state.icons.map((i, index) => {
-    if(this.between(left - i.left, -5, 5) && this.between(top - i.top, -40, 40)){
+    if(this.between(left - i.left, -10, 10) && this.between(i.top - top, 50, 80)){
       this.setState({
-        hitIcon: true
+        hitIcon: true,
+        activeIcon: true
       });
         this.type = i.type;
         return this.type;
       }
     });
     if(this.state.hitIcon){
-      this.iconPower(this.type);
       this.randomIcons(0);
-      this.iconPosition();
+      this.iconPower(this.type);
   }
 
 }
@@ -324,6 +353,12 @@ overlapDots() {
   if(this.state.hitDot){
     this.addDot();
     this.randomDots();
+    if(this.state.activeIcon){
+      this.randomIcons(0);
+    }else {
+      this.randomIcons(this.state.iconProb);
+      this.iconPosition();
+    }
     this.statePosition();
     this.randomDotsMap();
     this.setState({
@@ -358,7 +393,12 @@ overlapDots() {
       this.barriers();
       this.randomDots();
       this.statePosition();
-      this.randomIcons(this.state.iconProb);
+      if(this.state.activeIcon){
+        this.randomIcons(0);
+      }else{
+        this.randomIcons(this.state.iconProb);
+        this.iconPosition();
+      }
       this.renderTimeOut = setTimeout(this.renderLevel.bind(newLevel), 2000);
     }
   }
@@ -449,7 +489,6 @@ overlapDots() {
     this.setState({
       dots: Array(this.ranNum).fill(arrayFill)
       });
-    this.randomIcons(this.state.iconProb);
   }
 
 // this function is for the random dots. It takes the dots array and maps over them
@@ -487,7 +526,7 @@ iconPosition() {
   const rightBoundary = window.innerWidth - num;
   const leftBoundary = (window.innerWidth - this.width) / 2;
   const bottomBoundary = this.height - 100;
-  const easy = ["blackout", "faster"];
+  const easy = ["blackout", "faster", "nobounds"];
   const medium = ["blackout", "faster", "lose", "gain", "faster", "nobounds"];
   const hard = ["blackout", "faster", "lose", "gain", "gain", "nobounds", "lose", "lose", "faster"];
   const superHard = ["blackout", "faster", "gain", "nobounds", "lose", "gain", "lose", "nobounds", "lose", "lose", "faster", "lose", "lose", "bolt", "bolt", "bolt", "lose"];
@@ -510,26 +549,31 @@ iconPosition() {
 }
 maxspeed = 10;
   iconPower(type){
+    this.randomIcons(0);
+    this.iconPosition();
+    this.renderIcons();
     if(type === "blackout"){
       this.setState({
         backgroundColor: "#000000",
-        color: "#ffffff"
+        color: "#ffffff",
+        hitIcon: false
       });
       console.log(type);
-      setTimeout(this.undoPower, 5000, type);
+      setTimeout(this.undoPower, 15000, type);
     }else if(type === "faster"){
-      const speed = this.state.speed - 20 === this.maxspeed ? this.maxspeed : this.state.speed - 20;
         this.setState({
           prevSpeed: this.state.speed,
-          speed: speed
+          speed: 20,
+          hitIcon: false
         });
-      setTimeout(this.undoPower, 3000, type);
+      setTimeout(this.undoPower, 5000, type);
     }else if(type === "lose"){
       this.setState({
         livesCount: this.state.livesCount - 1,
         loseLife: true,
         pauseGame: true,
-        hitIcon: false
+        hitIcon: false,
+        activeIcon: false
       });
       if(this.state.livesCount > 0){
         setTimeout(this.subALife, 1000);
@@ -539,19 +583,20 @@ maxspeed = 10;
     }else if(type === "gain"){
       this.setState({
         livesCount: this.state.livesCount + 1,
-        hitIcon: false
+        hitIcon: false,
+        activeIcon: false
       });
     }else if(type === "bolt"){
       this.setState({
         prevSpeed: this.state.speed,
-        speed: this.maxspeed
+        speed: 0
       });
       setTimeout(this.undoPower, 3000, type);
     }else if(type === "nobounds"){
       this.setState({
         boundaries: "disabled"
       })
-      setTimeout(this.undoPower, 5000, type);
+      setTimeout(this.undoPower, 25000, type);
     }
   }
 
@@ -562,22 +607,26 @@ maxspeed = 10;
       this.setState({
         backgroundColor: "#ffffff",
         color: "#000000",
-        hitIcon: false
+        hitIcon: false,
+        activeIcon: false
       });
     }else if(type === "faster"){
       this.setState({
         speed: this.state.prevSpeed,
-        hitIcon: false
+        hitIcon: false,
+        activeIcon: false
       });
     }else if(type === "bolt"){
       this.setState({
         speed: this.state.prevSpeed,
-        hitIcon: false
+        hitIcon: false,
+        activeIcon: false
       })
     }else if(type === "nobounds"){
       this.setState({
         boundaries: true,
-        hitIcon: false
+        hitIcon: false,
+        activeIcon: false
       });
     }
   }
@@ -629,6 +678,10 @@ maxspeed = 10;
                     top={icon.top} />
         }
       })
+    }else {
+      this.iconRender = this.state.icons.map((icon, index) => {
+        return ;
+      });
     }
   }
 
@@ -785,6 +838,7 @@ maxspeed = 10;
     if(snake[0].dotDirection === "right"){
       this.changeDown();
     }else {
+      console.log('missed if');
       const hLeft = snake[0].left;
       const hTop = snake[0].top;
       snake[0].dotDirection = "left";
@@ -812,6 +866,7 @@ maxspeed = 10;
   changeRight() {
     const snake = this.state.snake.slice();
     if(snake[0].dotDirection === "left"){
+      console.log('ran if');
       this.changeUp();
     }else {
       const hLeft = snake[0].left;
