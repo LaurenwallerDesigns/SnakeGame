@@ -9,6 +9,7 @@ function TitleBar(props){
 			<div className="title-bar">
 				<LifeCounter
 					livesCount={props.livesCount} />
+					{props.timer}
 				<LevelUp
 					levelUpGoal={props.levelUpGoal} />
 				<Title

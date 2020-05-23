@@ -159,16 +159,47 @@ code {
 	text-align: center;
 }
 
-.redBorder{
-	animation: blinkingBorder .03s infinite;
-}
 
-p{
-	margin: 0;
-}
 
 #game-board{
 	border: #eee 3px solid;
 	margin-left: auto;
 	margin-right: auto;
+	width: 100vw;
+	height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
+
+#grid{
+	width:800px;
+	height: 600px;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+}
+
+.grid-item{
+	outline: 1px solid grey;
+	width:20px;
+	height:20px;
+	display:flex;
+	align-content: center;
+	justify-content: center;
+}
+/*gridWidth = numberOfGridCells * widthOfAGridItem;*/
+
+.is-food{
+	z-index: 1;
+}
+.is-head{
+	background-color: black !important;
+	z-index: 2;
+}
+
+.is-tail{
+	background-color: black;
+}
+
+

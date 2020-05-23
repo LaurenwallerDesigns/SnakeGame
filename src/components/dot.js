@@ -1,10 +1,9 @@
 import React from 'react';
+import circle from '../img/dot.png';
 
 const Dot = (props) => (
-	<p
-		id={props.id}
-		className={props.className ? 'blink-animation' : props.ranDot ? 'randomDots' : ''}
-		style={{position: "absolute", left: props.left + "px", top: props.top + 'px', fontSize: '85px', color: props.color}}> . </p>
+	<img src={circle} alt="dot" className={props.class} style={{marginTop: "auto", marginBottom: "auto", backgroundColor:"#" + props.color, width: "20px", height: "20px"}} />
+
 );
 
 export default Dot;
