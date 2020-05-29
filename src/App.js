@@ -6,15 +6,11 @@ import StartButton from './components/StartButton';
 import Dot from './components/dot';
 import TitleBar from './components/TitleBar';
 import PauseDisplay from './components/PauseDisplay';
-// import GoalMade from './components/GoalMade';
-// import LoseLife from './components/LoseLife';
-// import GameOver from './components/GameOver';
-// import LightSpeed from './components/LightSpeed';
-// import BlackOut from './components/BlackOut';
-// import SpeedUp from './components/SpeedUp';
-// import Bomb from './components/Bomb';
-// import NoBoundaries from './components/NoBoundaries';
-// import GainALife from './components/GainALife';
+import LightSpeed from './components/LightSpeed';
+import SpeedUp from './components/SpeedUp';
+import Bomb from './components/Bomb';
+import NoBoundaries from './components/NoBoundaries';
+import GainALife from './components/GainALife';
 
 class App extends React.Component {
   constructor(props) {
@@ -23,7 +19,6 @@ class App extends React.Component {
       //GAME START STATE
       // width: 0,
       // height: 0,
-      game: false,
       rows: 25,
       cols: 40,
       grid: [],
@@ -39,23 +34,19 @@ class App extends React.Component {
       // backgroundColor: "#ffffff",
       // boundaries: true,
       //TITLE BAR STATE
-      livesCount: 3,
-      level: 1,
-      levelType: "easy",
-      dotCount: 1,
+      lifeCount: 3,
       tickTime: 500,
-      levelUpGoal: 5,
       hitBoundary: false,
       pauseGame: false,
       closeCall: false,
       followPosition: [],
-      // icons: [],
-      // iconProb: 4,
+      game: true,
+      icons: [],
+      iconProb: 4,
       // activeIcon: false
 
     };
     //this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
-    this.startGame = this.startGame.bind(this);
     //this.addDot = this.addDot.bind(this);
     //this.randomDots = this.randomDots.bind(this);
     //this.randomDotsMap = this.randomDotsMap.bind(this);
@@ -67,6 +58,7 @@ class App extends React.Component {
     // this.changeDown = this.changeDown.bind(this);
     //this.pauseGame = this.pauseGame.bind(this);
     this.randomFood = this.randomFood.bind(this);
+    this.randomIcons = this.randomIcons.bind(this);
     this.renderHead = this.renderHead.bind(this);
     this.gameTick = this.gameTick.bind(this);
     //this.overlapDots = this.overlapDots.bind(this);
@@ -89,11 +81,28 @@ class App extends React.Component {
   }
 
   componentDidMount() {
+    //Get width of Game-board
+    const pixelWidth = window.innerWidth * .99;
+    //Get grid width 
+    this.gridWidth = Math.floor(pixelWidth) - 20;
+    /*gridWidth = numberOfGridCells * widthOfAGridItem;*/
+    const cols = Math.floor(this.gridWidth / 20);
+    //get height of game-board
+    const pixelHeight = window.innerHeight * .80;
+    //get grid height
+    this.gridHeight = Math.floor(pixelHeight) - 20;
+    //get rows
+    const rows = Math.floor(this.gridHeight / 20);
+    this.setState({
+      rows: rows,
+      cols: cols
+    });
     //this.updateWindowDimensions();
     document.body.addEventListener('keydown', this.movingDot);
 
     //setting intial state
     this.randomFood();
+    this.randomIcons();
     this.setState((state) => {
       const newState = {
         ...state,
@@ -101,7 +110,8 @@ class App extends React.Component {
         snake: {
           head: this.renderHead(),
           tail: state.snake.tail
-        }
+        },
+        icons: this.randomIcons(),
       };
       const grid = this.renderGrid(newState, true);
       return {
@@ -111,9 +121,11 @@ class App extends React.Component {
     });
     this.renderGrid();
     //interval for snake moving
+    console.time('start');
     window.fnInterval = setInterval(() => {
       this.gameTick();
     }, this.state.tickTime);
+    console.timeEnd('start');
     //this.randomIcons(this.state.iconProb);
    // window.addEventListener('resize', this.updateWindowDimensions);
   }
@@ -209,6 +221,10 @@ class App extends React.Component {
 //     } 
 //   }
 
+handleonclick() {
+  window.location.reload();
+}
+
 
   renderGrid(state = {}, sendback = false) {
     if(!Object.keys(state).length){
@@ -220,7 +236,8 @@ class App extends React.Component {
       cols,
       food,
       snake,
-      followPosition
+      followPosition,
+      icons
     } = state;
     for(let row = 0; row < this.state.rows; row++) {
       for(let col = 0; col < this.state.cols; col++){
@@ -242,13 +259,24 @@ class App extends React.Component {
           }
         });
 
+        let isIcon = false;
+        let type = "none";
+        this.icons.forEach(i => {
+          if(i.row === row && i.col === col){
+            isIcon = true;
+            type = i.itype;
+          }
+        });
+
         grid.push({
           row,
           col,
           isFood,
           color,
           isHead,
-          isTail
+          isTail,
+          isIcon,
+          type
         })
       }
     }
@@ -278,6 +306,33 @@ class App extends React.Component {
       }
     });
     return this.food
+  }
+
+  randomIcons() {
+    this.icons = [];
+    const randomNumber = Math.floor(Math.random() * 4);
+    const type = this.state.snake.tail.length < 10 ? ["lose", "gain", "nobounds", "faster"] : 
+                  this.state.snake.tail.length < 30 ? ["lose", "gain", "nobounds", "faster", "gain", "gain", "nobounds", "lose"] :
+                  this.state.snake.tail.length < 75 ? ["lose", "gain", "nobounds", "faster", "bolt", "nobounds", "lose", "lose", "bolt"] :
+                  this.state.snake.tail.length > 75 ? ["gain", "lose", "nobounds", "faster", "lose", "lose", "nobounds", "lose", "bolt", "bolt", "bolt", "bolt", "bolt"] :
+                    ["lose", "gain", "nobounds", "faster"];
+    for(let i = 0; i < randomNumber; i++) {
+      const iconType = type[Math.floor(Math.random() * type.length)];
+        const col =  Math.floor(Math.random() * this.state.cols);
+        const row = Math.floor(Math.random() * this.state.rows);
+        const itype = iconType;
+
+        this.icons.push({
+          row,
+          col,
+          itype
+        });
+
+    };
+    this.setState({
+      icons: this.icons
+    });
+    return this.icons
   }
 
 //   barriers() {
@@ -397,16 +452,6 @@ class App extends React.Component {
   //   window.location.reload();
   // }
 
-//Onclick to start game
-  startGame() {
-    this.setState({
-      game: true
-    });
-    // this.statePosition();
-    // this.iconPosition();
-    // //calling to start timeout
-    // this.changePositionOfSnake();
-  }
 
 // overlapIcons() {
 //   const snake = this.state.snake;
@@ -1047,7 +1092,11 @@ class App extends React.Component {
         currentDirection,
         snake,
         food,
-        followPosition
+        followPosition,
+        lifeCount,
+        pauseGame,
+        icons,
+        tickTime
       } = state;
 
       let {
@@ -1058,7 +1107,6 @@ class App extends React.Component {
         row,
         col
       } = state.snake.head;
-
       let head = {
         row,
         col
@@ -1066,29 +1114,23 @@ class App extends React.Component {
 
       followPosition = followPosition.concat(head);
       //snake eats
-      //this.concatPosition(head);
-      if(tail.length > 0){
-        const tMap = tail.map((seg, index) => {
-          const tdex = index + 1;
-          const value = followPosition[followPosition.length - tdex].valueOf();
-          seg = value;
-          return seg;
-        });
-        tail = tMap;
-      }
-
 
       food.forEach( f => {
         if(head.row === f.row && head.col === f.col){
         food = this.randomFood();
+        icons = this.randomIcons();
         const value = followPosition[followPosition.length - 1].valueOf();
         tail = tail.concat(value);
+        if(this.state.snake.tail.length % 5 === 0){
+          tickTime = tickTime - 100;
+        }else{
+          tickTime = tickTime;
+        }
         return true
         }else {
           return false;
         }
       });
-
 
 
 
@@ -1109,14 +1151,48 @@ class App extends React.Component {
       head.col++;
       break;
     }
+
+    //lose life
+      if(head.row < 0 || head.row > this.state.rows || head.col < 0 || head.col > this.state.cols){
+        lifeCount = lifeCount - 1;
+        pauseGame = true;
+        clearInterval(window.fnInterval);
+        const hvalue = followPosition[followPosition.length - 5].valueOf();
+        head = hvalue;
+        if(tail.length > 0){
+          const tMap = tail.map((seg, index) => {
+            const tdex = index + 6;
+            const value = followPosition[followPosition.length - tdex].valueOf();
+            seg = value;
+            return seg;
+          });
+        tail = tMap;
+      }
+
+      }else {
+        if(tail.length > 0){
+          const tMap = tail.map((seg, index) => {
+            const tdex = index + 2;
+            const value = followPosition[followPosition.length - tdex].valueOf();
+            seg = value;
+            return seg;
+          });
+          tail = tMap;
+        }
+      }
     const newState = {
       ...state,
       food,
+      icons,
       followPosition,
+      tickTime,
       snake: {
         head,
         tail
       },
+      lifeCount,
+      currentDirection,
+      pauseGame,
     }
     const grid = this.renderGrid(newState, true);
     return {
@@ -1124,6 +1200,26 @@ class App extends React.Component {
       grid,
     }
     });
+    if(this.state.pauseGame){
+      if(this.state.lifeCount > 0){
+        console.log('hit');
+        window.fnInterval = setInterval(() => {
+          this.gameTick();
+        }, this.state.tickTime);
+        const opposite =  this.state.currentDirection === "up" ? "left" : 
+                    this.state.currentDirection === "down" ? "right" :
+                    this.state.currentDirection === "left" ? "up" :
+                    "down";
+        this.setState({
+          pauseGame: false,
+          currentDirection: opposite
+        });
+      }else {
+        this.setState({
+          game: false
+        });
+      }
+    }
   }
 
 
@@ -1176,8 +1272,7 @@ class App extends React.Component {
   }
 
   render() { 
-
-
+    console.log(this.gridHeight);
     const halfWidth = window.innerWidth / 2;
     const centerPause = halfWidth - 243.6875;
 
@@ -1188,17 +1283,53 @@ class App extends React.Component {
         return <div
         key={cell.row+index+ '-' + cell.col}
         className={cell.isFood ? "grid-item is-food" : "grid-item"} ><Dot
-                                                                      color={cell.color} /></div>
+                                                                      color={cell.color}
+                                                                      /></div>
       }else if(cell.isHead){
         return <div
         key={cell.row+index+ '-' + cell.col}
-        className={cell.isHead ? "grid-item is-head blink-animation" : "grid-item"} ><Dot /></div>
+        className={cell.isHead ? "grid-item is-head blink-animation" : "grid-item"} ><Dot
+                                                                                      color={this.state.color}
+                                                                                      /></div>
       }else if(cell.isTail){
         return <div
         key={cell.row+index+ '-' + cell.col}
-        className={cell.isTail ? "grid-item is-tail" : "grid-item"} ><Dot /></div>
-      }
-      else{
+        className={cell.isTail ? "grid-item is-tail" : "grid-item"} ><Dot
+                                                                        color={this.state.color}
+                                                                        /></div>
+      }else if(cell.isIcon){
+        if(cell.type === "faster"){
+          return <div
+            key={cell.row+index+ '-' + cell.col}
+            className="grid-item"><SpeedUp />
+                </div>
+        }else if(cell.type === "bolt"){
+          return <div
+            key={cell.row+index+ '-' + cell.col}
+            className="grid-item"><LightSpeed />
+                </div>
+        }else if(cell.type === "lose"){
+          return <div
+            key={cell.row+index+ '-' + cell.col}
+            className="grid-item"><Bomb />
+                </div>
+        }else if(cell.type === "gain"){
+          return <div
+            key={cell.row+index+ '-' + cell.col}
+            className="grid-item"><GainALife />
+                </div>
+        }else if(cell.type === "nobounds"){
+          return <div
+            key={cell.row+index+ '-' + cell.col}
+            className="grid-item"><NoBoundaries />
+                </div>
+        }else if(cell.type === "gain"){
+          return <div
+            key={cell.row+index+ '-' + cell.col}
+            className="grid-item"><GainALife />
+                </div>
+        }
+      }else{
       return <div
         key={cell.row+index+ '-' + cell.col}
         className="grid-item" ></div>
@@ -1221,23 +1352,21 @@ class App extends React.Component {
 
     return (
       <div style={{height: window.innerHeight, width: window.innerWidth}}>
-        {this.state.game ?
-          ( <React.Fragment>
-              <TitleBar
-                livesCount={this.state.livesCount}
-                level={this.state.level}
-                dotCount={this.state.dotCount}
-                levelUpGoal={this.state.levelUpGoal} />
-
-              <div id="grid" style={{height: '500px', width: '800px'}} >
-                {this.grid}
-              </div>
-            </React.Fragment>
-           ) :
-          (<StartButton 
-            startGame={this.startGame}
-            />
-            )}
+        <React.Fragment>
+          <TitleBar
+            livesCount={this.state.lifeCount}
+            dotCount={this.state.snake.tail.length}
+             />
+          <div id="game-board">
+            <div id="grid" style={{height: this.gridHeight + 'px', width: this.gridWidth + 'px'}} >
+              {this.state.game ? this.grid :
+                <div id="game-over">
+              <h1> Game Over </h1>
+              <h3 onClick={this.handleonclick}> Try Again </h3>
+              </div> }
+            </div>
+          </div>
+        </React.Fragment>
     </div>
     );
   }

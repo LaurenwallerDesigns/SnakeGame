@@ -165,23 +165,24 @@ code {
 	border: #eee 3px solid;
 	margin-left: auto;
 	margin-right: auto;
-	width: 100vw;
-	height: 100vh;
+	width: 99vw;
+	height: 80vh;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 }
 
 #grid{
-	width:800px;
-	height: 600px;
+/*	width:800px;
+	height: 600px;*/
 	display: flex;
 	flex-direction: row;
 	flex-wrap: wrap;
+	outline: 1px solid grey;
 }
 
 .grid-item{
-	/*//outline: 1px solid grey;*/
+	outline: 1px solid grey;
 	width:20px;
 	height:20px;
 	display:flex;
@@ -190,16 +191,20 @@ code {
 }
 /*gridWidth = numberOfGridCells * widthOfAGridItem;*/
 
-.is-food{
-	z-index: 1;
-}
-.is-head{
-	background-color: black !important;
-	z-index: 2;
+#game-over{
+	margin: auto;
 }
 
-.is-tail{
-	background-color: black;
+#game-over h1{
+	font-size: 85px;
+	color: red;
+}
+#game-over h3{
+	text-align: center;
+}
+
+#game-over h3:hover{
+	color: red;
 }
 
 
