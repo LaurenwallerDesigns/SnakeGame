@@ -40,6 +40,7 @@ class App extends React.Component {
       game: true,
       icons: [],
       count: 0,
+      time: 500,
       activeIconType: false,
       iconProb: 4,
     };
@@ -186,7 +187,7 @@ handleonclick() {
   randomIcons() {
     this.icons = [];
     const randomNumber = Math.floor(Math.random() * 4);
-    const type = this.state.snake.tail.length < 10 ? ["lose", "gain", "nobounds", "faster"] : 
+    const type = this.state.snake.tail.length < 10 ? ["lose", "bolt", "nobounds", "faster"] : 
                   this.state.snake.tail.length < 30 ? ["lose", "gain", "nobounds", "faster", "gain", "gain", "nobounds", "lose"] :
                   this.state.snake.tail.length < 75 ? ["lose", "gain", "nobounds", "faster", "bolt", "nobounds", "lose", "lose", "bolt"] :
                   this.state.snake.tail.length > 75 ? ["gain", "lose", "nobounds", "faster", "lose", "lose", "nobounds", "lose", "bolt", "bolt", "bolt", "bolt", "bolt"] :
@@ -221,6 +222,7 @@ handleonclick() {
         pauseGame,
         game,
         icons,
+        time,
         hitTail,
         color,
         activeIcon,
@@ -270,13 +272,15 @@ handleonclick() {
           clearInterval(window.fnInterval);
           this.tickTime = this.tickTime - 20;
           this.maxTime = 50;
+          time = this.tickTime;
           window.fnInterval = setInterval(() => {
             this.gameTick();
           }, this.tickTime === this.maxTime ? this.maxTime : this.tickTime);
         }else{
           this.tickTime = this.tickTime;
         }
-        color = "000000";
+        const maybeBlack = state.color === "E71D36" ? "000000" : state.color;
+        color = maybeBlack;
 
         return true
         }else {
@@ -289,28 +293,67 @@ handleonclick() {
 
     icons.forEach(i => {
       if(head.row === i.row && head.col === i.col){
-        clearInterval(window.fnInterval);
-        this.prevTickTime = this.tickTime;
         if(i.itype === "faster"){
+          clearInterval(window.fnInterval);
           activeIcon = true;
           activeIconType = "faster";
-          this.tickTime = 150;
+          this.tickTime = this.tickTime / 2;
           window.fnInterval = setInterval(() => {
               this.gameTick();
             }, this.tickTime);
+        }else if(i.itype === "gain"){
+          clearInterval(window.fnInterval);
+          lifeCount = lifeCount + 1;
+          window.fnInterval = setInterval(() => {
+              this.gameTick();
+            }, this.tickTime);
+        }else if(i.itype === "lose"){
+          lifeCount = lifeCount - 1;
+          pauseGame = true;
+          clearInterval(window.fnInterval);
+        }else if(i.itype === "bolt"){
+          clearInterval(window.fnInterval);
+          activeIcon = true;
+          activeIconType = "bolt";
+          this.tickTime = this.tickTime / 5;
+          window.fnInterval = setInterval(() => {
+              this.gameTick();
+            }, this.tickTime);
+        }else if(i.itype === "nobounds"){
+          activeIcon = true;
+          activeIconType = "nobounds";
+          color = "FCBA04";
         }
       }
     })
+    console.log(this.tickTime);
 
     if(activeIcon){
-     count = count++;
-      if(count === 20 && activeIconType === "faster"){
-        this.tickTime = this.prevTickTime;
+      console.log('hitactive');
+     count = state.count ++;
+     console.log('count', count);
+      if(count === 150 && activeIconType === "faster"){
+        this.tickTime = state.time;
+        count = 0;
+        activeIconType = false;
         clearInterval(window.fnInterval);
         activeIcon = false;
         window.fnInterval = setInterval(() => {
                 this.gameTick();
               }, this.tickTime);
+      }else if(count === 100 && activeIconType === "bolt"){
+        this.tickTime = state.time;
+        count = 0;
+        clearInterval(window.fnInterval);
+        activeIcon = false;
+        activeIconType = false;
+        window.fnInterval = setInterval(() => {
+                this.gameTick();
+              }, this.tickTime);
+      }else if(count === 50 && activeIconType === "nobounds"){
+        count = 0;
+        activeIconType = false;
+        color = "000000";
       }
 
     }
@@ -319,7 +362,8 @@ handleonclick() {
 
     //lose life
       if(head.row < 0 || head.row > this.state.rows || head.col < 0 || head.col > this.state.cols){
-        lifeCount = lifeCount - 1;
+        const num = activeIconType === "nobounds" ? 0 : 1;
+        lifeCount = lifeCount - num;
         pauseGame = true;
         clearInterval(window.fnInterval);
         switch (currentDirection) {
@@ -446,6 +490,7 @@ handleonclick() {
       activeIcon,
       activeIconType,
       count,
+      time,
       snake: {
         head,
         tail
