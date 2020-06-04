@@ -17,8 +17,6 @@ class App extends React.Component {
     super(props);
     this.state = {
       //GAME START STATE
-      // width: 0,
-      // height: 0,
       rows: 25,
       cols: 40,
       grid: [],
@@ -29,55 +27,27 @@ class App extends React.Component {
         head: {},
         tail: []
       },
+      hitTail: false,
       currentDirection: 'up',
+      activeIcon: false,
       color: "000000",
-      // backgroundColor: "#ffffff",
-      // boundaries: true,
       //TITLE BAR STATE
       lifeCount: 3,
-      tickTime: 500,
       hitBoundary: false,
       pauseGame: false,
       closeCall: false,
       followPosition: [],
       game: true,
       icons: [],
+      count: 0,
+      activeIconType: false,
       iconProb: 4,
-      // activeIcon: false
-
     };
-    //this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
-    //this.addDot = this.addDot.bind(this);
-    //this.randomDots = this.randomDots.bind(this);
-    //this.randomDotsMap = this.randomDotsMap.bind(this);
-    //this.boundaries = this.boundaries.bind(this);
     this.movingDot = this.movingDot.bind(this);
-    // this.changeLeft = this.changeLeft.bind(this);
-    // this.changeRight = this.changeRight.bind(this);
-    // this.changeUp = this.changeUp.bind(this);
-    // this.changeDown = this.changeDown.bind(this);
-    //this.pauseGame = this.pauseGame.bind(this);
     this.randomFood = this.randomFood.bind(this);
     this.randomIcons = this.randomIcons.bind(this);
     this.renderHead = this.renderHead.bind(this);
     this.gameTick = this.gameTick.bind(this);
-    //this.overlapDots = this.overlapDots.bind(this);
-    //this.statePosition = this.statePosition.bind(this);
-    //this.between = this.between.bind(this);
-    // this.getSnakeMovePrevious = this.getSnakeMovePrevious.bind(this);
-    // this.changePositionOfSnake = this.changePositionOfSnake.bind(this);
-    // this.snakeEffect = this.snakeEffect.bind(this);
-    //this.renderLevel = this.renderLevel.bind(this);
-    //this.levelUpCheck = this.levelUpCheck.bind(this);
-    //this.subALife = this.subALife.bind(this);
-    //this.endOfGame = this.endOfGame.bind(this);
-    //this.barriers = this.barriers.bind(this);
-    // this.probablity = this.probablity.bind(this);
-    // this.randomIcons = this.randomIcons.bind(this);
-    // this.boundaryChangePoints = this.boundaryChangePoints.bind(this);
-    // this.renderIcons = this.renderIcons.bind(this);
-    // this.undoPower = this.undoPower.bind(this);
-    // this.noBounds = this.noBounds.bind(this);
   }
 
   componentDidMount() {
@@ -97,9 +67,7 @@ class App extends React.Component {
       rows: rows,
       cols: cols
     });
-    //this.updateWindowDimensions();
     document.body.addEventListener('keydown', this.movingDot);
-
     //setting intial state
     this.randomFood();
     this.randomIcons();
@@ -121,105 +89,12 @@ class App extends React.Component {
     });
     this.renderGrid();
     //interval for snake moving
-    console.time('start');
+    this.tickTime = 500;
     window.fnInterval = setInterval(() => {
       this.gameTick();
-    }, this.state.tickTime);
-    console.timeEnd('start');
-    //this.randomIcons(this.state.iconProb);
-   // window.addEventListener('resize', this.updateWindowDimensions);
+    }, this.tickTime);
   }
 
-//Changes state of width/height on screen resizes
-  // updateWindowDimensions() {
-  //   this.setState({ width: window.innerWidth, height: window.innerHeight});
-  // }
-// //Unique IDs for snake body
-//   prevDotId = 0;
-
-// //Used for adding a dot to end of snake 
-//   addDot = (i) => {
-//     if(this.state.hitDot){
-//       const snake = this.state.snake.slice();
-//       const snakeLength = snake[snake.length - 1];
-//       const snakeCurrIndex = snake.indexOf(snakeLength);
-//       const direction = snake[snakeCurrIndex].dotDirection;
-//       const changePos = snake[snakeCurrIndex].changePos;
-//       if(direction === "down"){
-//         this.leftAddedPos = snake[snakeCurrIndex].left;
-//         this.topAddedPos = snake[snakeCurrIndex].top - 15;
-//         this.setState({
-//               snake: this.state.snake.concat([{
-//                     id: this.prevDotId += 1,
-//                     animation: false,
-//                     left: this.leftAddedPos,
-//                     top: this.topAddedPos,
-//                     color: this.state.color,
-//                     dotDirection: direction,
-//                     changePos: changePos
-//               }]),
-//               hitDot: false
-//             });
-//       }else if(direction === "left"){
-//         this.leftAddedPos = snake[snakeCurrIndex].left + 15;
-//         this.topAddedPos = snake[snakeCurrIndex].top;
-//         this.setState({
-//               snake: this.state.snake.concat([{
-//                     id: this.prevDotId += 1,
-//                     animation: false,
-//                     left: this.leftAddedPos,
-//                     top: this.topAddedPos,
-//                     color: this.state.color,
-//                     dotDirection: direction,
-//                     changePos: changePos
-//               }]),
-//               hitDot: false
-//             });        
-//       }else if(direction === "right"){
-//         this.leftAddedPos = snake[snakeCurrIndex].left - 15;
-//         this.topAddedPos = snake[snakeCurrIndex].top;
-//         this.setState({
-//               snake: this.state.snake.concat([{
-//                     id: this.prevDotId += 1,
-//                     animation: false,
-//                     left: this.leftAddedPos,
-//                     top: this.topAddedPos,
-//                     color: this.state.color,
-//                     dotDirection: direction,
-//                     changePos: changePos
-//               }]),
-//               hitDot: false
-//             }); 
-//       }else if(direction === "up"){
-//         this.leftAddedPos = snake[snakeCurrIndex].left;
-//         this.topAddedPos = snake[snakeCurrIndex].top + 15;
-//         this.setState({
-//               snake: this.state.snake.concat([{
-//                     id: this.prevDotId += 1,
-//                     animation: false,
-//                     left: this.leftAddedPos,
-//                     top: this.topAddedPos,
-//                     color: this.state.color,
-//                     dotDirection: direction,
-//                     changePos: changePos
-//               }]),
-//               hitDot: false
-//             }); 
-//       }
-//     }else{
-//       this.setState({
-//         snake: this.state.snake.concat([{
-//               id: this.prevDotId += 1,
-//               animation: true,
-//               left: window.innerWidth * 0.5,
-//               top: window.innerHeight * 0.5,
-//               color: this.state.color,
-//               dotDirection: "down",
-//               //changePos: -1
-//         }]),
-//       });
-//     } 
-//   }
 
 handleonclick() {
   window.location.reload();
@@ -335,757 +210,6 @@ handleonclick() {
     return this.icons
   }
 
-//   barriers() {
-//       this.width = (window.innerWidth) - (window.innerWidth * 0.1);
-//       this.height = (window.innerHeight * 0.8);
-//     if(this.state.levelType === 'easy'){
-//       this.quantityOfDots = 25;
-//     } else if(this.state.levelType === 'medium'){
-//       this.quantityOfDots = 15;
-//     } else if(this.state.levelType === 'hard'){
-//       this.quantityOfDots = 10;
-//     } else if(this.state.levelType === 'superHard'){
-//       this.quantityOfDots = 8;
-//     } else if(this.state.levelType === 'extreme'){
-//       this.quantityOfDots = 4;
-//     }
-//   }
-
-// //Boundaries for the screen
-//   boundaries(i) {
-//     const snake = this.state.snake;
-//     const left = snake[0].left;
-//     const top = snake[0].top;
-//   if(this.state.boundaries === "disabled"){
-//     if(left <= 30 || left >= this.width - 5 || top <= 40 || top >= this.height + 5){
-//       const d = snake[0].dotDirection;
-//       console.log('hit');
-//       if(d === "down"){
-//         this.setState({
-//           hitBoundary: true,
-//           pauseGame: true
-//         });
-//         this.boundaryChangePoints();
-//       }else if(d === "up"){
-//         this.setState({
-//           hitBoundary: true,
-//           pauseGame: true
-//         });
-//         this.boundaryChangePoints();
-//       }else if(d === "right"){
-//         this.setState({
-//           hitBoundary: true,
-//           pauseGame: true
-//         });
-//         this.boundaryChangePoints();
-//       }else if(d === "left"){
-//         this.setState({
-//           hitBoundary: true,
-//           pauseGame: true
-//         });
-//         this.boundaryChangePoints();
-//       }
-//       setTimeout(this.noBounds, 100);
-//     }
-//   }else{
-//       if(this.between(left, 1, 30) || this.between(left, this.width - 30, this.width - 1) || this.between(top, 1, 30) || this.between(top, this.height - 30, this.height - 1)){
-//         this.setState({
-//           closeCall: true
-//         });
-//       }else if(left <= 0 || left >= this.width || top <= 0 || top >= this.height){
-//           this.setState({
-//             hitBoundary: true,
-//             livesCount: this.state.livesCount - 1,
-//             pauseGame: true
-//           });
-//           this.boundaryChangePoints();
-//           //calling to pause game
-//           this.changePositionOfSnake();
-//           const direction = this.state.snake[0].dotDirection;
-//           if(this.state.livesCount > 0){
-//             this.setState({
-//               hitBoundary: false,
-//               loseLife: true
-//             });
-//             setTimeout(this.subALife, 1000);
-//           }else{
-//             this.setState({
-//               hitBoundary: false,
-//               gameOver: true,
-//               pauseGame: true
-//             });
-//             //calling to pause timeout
-//             this.changePositionOfSnake();
-//             setTimeout(this.endOfGame, 1000);
-//           }
-//         }else {
-//         this.setState({
-//           closeCall: false
-//         });
-//       }
-//     }
-//   }
-
-
-// noBounds() {
-//   this.setState({
-//     pauseGame: false,
-//     hitBoundary: false
-//   });
-//   this.changePositionOfSnake();
-// }
-  // subALife(i) {
-  //   this.setState({
-  //     loseLife: false,
-  //     pauseGame: false
-  //   });
-  //   //calling to restart timeout
-  //   this.changePositionOfSnake();
-    
-  // }
-
-  // endOfGame() {
-  //   const snake = this.state.snake[0];
-  //   this.setState({
-  //     game: false
-  //   });
-  //   window.location.reload();
-  // }
-
-
-// overlapIcons() {
-//   const snake = this.state.snake;
-//   const d = snake[0].dotDirection;
-//   const left = snake[0].left;
-//   const top = snake[0].top;
-//   this.iconHit = this.state.icons.map((i, index) => {
-//     if(this.between(left - i.left, -10, 10) && this.between(i.top - top, 50, 80)){
-//       this.setState({
-//         hitIcon: true,
-//         activeIcon: true
-//       });
-//         this.type = i.type;
-//         return this.type;
-//       }
-//     });
-//     if(this.state.hitIcon){
-//       this.randomIcons(0);
-//       this.iconPower(this.type);
-//   }
-
-// }
-
-
-// overlapDots() {
-//   const snake = this.state.snake;
-//   const left = snake[0].left;
-//   const top = snake[0].top;
-//   const dots = this.state.dots;
-//   this.leftDot = dots.map((dot, index) => {
-//     const dotPos = [dot.left, dot.top];
-//     if(this.between(left - dot.left, -5, 5) && this.between(top - dot.top, -5, 5)){
-//       this.setState({
-//         hitDot: true
-//       });
-//       return true;
-//     }
-//   });
-
-//   if(this.state.hitDot){
-//     this.addDot();
-//     this.randomDots();
-//     if(this.state.activeIcon){
-//       this.randomIcons(0);
-//     }else {
-//       this.randomIcons(this.state.iconProb);
-//       this.iconPosition();
-//     }
-//     this.statePosition();
-//     this.randomDotsMap();
-//     this.setState({
-//       dotCount: this.state.dotCount + 1
-//     });
-//     this.levelUpCheck();
-//   }
-// }
-
-//   between(x, min, max) {
-//     return x>= min && x<= max;
-//   }
-
-
-  // //LEVEL UP METHODS
-
-  // levelUpCheck() {
-  //   if(this.state.dotCount === this.state.levelUpGoal){
-  //     this.probablity();
-  //     const newLevel = this.state.level + 1;
-  //     const newGoal = newLevel * newLevel + 10;
-  //     const speed = this.state.speed - 10 === this.maxspeed ? this.maxspeed : this.state.speed - 10;
-  //     this.setState({
-  //       level: newLevel,
-  //       levelUpGoal: newGoal,
-  //       speed: speed,
-  //       madeGoal: true,
-  //       pauseGame: true
-  //     });
-  //     //calling to clear timeout
-  //     this.changePositionOfSnake();
-  //     this.barriers();
-  //     this.randomDots();
-  //     this.statePosition();
-  //     if(this.state.activeIcon){
-  //       this.randomIcons(0);
-  //     }else{
-  //       this.randomIcons(this.state.iconProb);
-  //       this.iconPosition();
-  //     }
-  //     this.renderTimeOut = setTimeout(this.renderLevel.bind(newLevel), 2000);
-  //   }
-  // }
-
-  // renderLevel(num){
-  //   this.iconPosition();
-  //   this.setState({
-  //     madeGoal: false,
-  //     pauseGame: false
-  //     });
-  //   //calling to restart timeout
-  //   this.changePositionOfSnake();
-  // }
-
-  // probablity() {
-  //   if(this.state.level < 1){
-  //     this.setState({
-  //       levelType: 'easy'
-  //     });
-  //   }else if(this.state.level > 1 && this.state.level < 20){
-  //     const num = Math.floor(Math.random() * 50);
-  //     if(num < 30 && num % 2 == 0){
-  //       this.setState({
-  //         iconProb: 2,
-  //         levelType: 'easy'
-  //       });
-  //     }else if(num < 30){
-  //       this.setState({
-  //         iconProb: 3, 
-  //         levelType: 'medium'
-  //       });
-  //     }else if(num > 30 && num % 2 == 0) {
-  //       this.setState({
-  //         iconProb: 5,
-  //         levelType: 'hard'
-  //       });
-  //     }else if(num > 30){
-  //       this.setState({
-  //         iconProb: 5,
-  //         levelType: 'easy'
-  //       });
-  //     }else if(num > 40 && num % 2 == 0){
-  //       this.setState({
-  //         iconProb: 5,
-  //         levelType: 'superHard'
-  //       });
-  //     }else if(num > 48){
-  //       this.setState({
-  //         iconProb: 5,
-  //         levelType: 'extreme'
-  //       });
-  //     }else {
-  //       this.setState({
-  //         iconProb: 2,
-  //         levelType: 'easy'
-  //       });
-  //     }
-  //   }
-  // }
-
-
-
-// //**************************RANDOM DOTS RENDER FUNCTIONS************************************
-
-//   randomDotsMap() {
-//     //Map for random dots
-//     this.ranDots = this.state.dots.map((dot, index) => {
-//       this.index = index;
-//       return <Dot 
-//               id={"index" + dot.index}
-//               className={dot.animation}
-//               ranDot={true}
-//               left={dot.left}
-//               top={dot.top}
-//               color={"#" + dot.color}
-//               />
-//     });
-//   }
-
-
-// //Getting number of random dots number and sets it to the array
-//   randomDots() {
-//     this.ranNum = Math.floor(Math.random() * 50) + this.quantityOfDots;
-//     const arrayFill = {animation: false,
-//             left: window.innerWidth * 0.3,
-//             top: window.innerHeight * 0.3,
-//             color: this.state.color};
-//     this.setState({
-//       dots: Array(this.ranNum).fill(arrayFill)
-//       });
-//   }
-
-// // this function is for the random dots. It takes the dots array and maps over them
-// // to give them a random left, top and color. then sets it to state.
-
-//   statePosition() {
-//     const topBoundary = 5;
-//     const num = window.innerWidth - this.width;
-//     const rightBoundary = window.innerWidth - num;
-//     const leftBoundary = (window.innerWidth - this.width) / 2;
-//     const bottomBoundary = this.height - 10;
-//     const vart = this.state.dots.map((dot, index) => {
-//       const left = Math.floor(Math.random() * (rightBoundary - leftBoundary)) + leftBoundary;
-//       const top = Math.floor(Math.random() * Math.floor(bottomBoundary - topBoundary)) + topBoundary;
-//       const color = Math.floor(Math.random()*16777215).toString(16);
-//       return {
-//         animation: dot.animation,
-//         index: index,
-//         left: left,
-//         top: top,
-//         color: color
-//       }
-//     });
-
-//     this.setState({
-//       dots: vart
-//     });
-//   }
-
-// //**************************ICONS FUNCTIONS************************************
-
-// iconPosition() {
-//   const topBoundary = 105;
-//   const num = window.innerWidth - this.width;
-//   const rightBoundary = window.innerWidth - num;
-//   const leftBoundary = (window.innerWidth - this.width) / 2;
-//   const bottomBoundary = this.height - 100;
-//   const easy = ["blackout", "faster", "nobounds"];
-//   const medium = ["blackout", "faster", "lose", "gain", "faster", "nobounds"];
-//   const hard = ["blackout", "faster", "lose", "gain", "gain", "nobounds", "lose", "lose", "faster"];
-//   const superHard = ["blackout", "faster", "gain", "nobounds", "lose", "gain", "lose", "nobounds", "lose", "lose", "faster", "lose", "lose", "bolt", "bolt", "bolt", "lose"];
-//   const extreme = ["blackout", "faster", "lose", "lose", "bolt", "bolt", "bolt", "lose", "lose", "gain", "lose", "nobounds", "lose", "lose", "faster", "lose", "lose", "bolt", "bolt", "bolt", "lose"];
-
-//   this.iconType = this.state.levelType === "easy" ? easy : this.state.levelType === "medium" ? medium : this.state.levelType === "hard" ? hard : this.state.levelType === "superHard" ? superHard : this.state.levelType === "extreme" ? extreme : easy;
-//   const icon = this.state.icons.map((icon, index) => {
-//     const left = Math.floor(Math.random() * (rightBoundary - leftBoundary)) + leftBoundary;
-//     const top = Math.floor(Math.random() * Math.floor(bottomBoundary - topBoundary)) + topBoundary;
-//     const type = this.iconType[Math.floor(Math.random() * this.iconType.length)];
-//     return {
-//       left: left,
-//       top: top,
-//       type: type
-//     }
-//   });
-//   this.setState({
-//     icons: icon,
-//   });
-// }
-// maxspeed = 10;
-//   iconPower(type){
-//     this.randomIcons(0);
-//     this.iconPosition();
-//     this.renderIcons();
-//     if(type === "blackout"){
-//       this.setState({
-//         backgroundColor: "#000000",
-//         color: "#ffffff",
-//         hitIcon: false
-//       });
-//       console.log(type);
-//       setTimeout(this.undoPower, 15000, type);
-//     }else if(type === "faster"){
-//         this.setState({
-//           prevSpeed: this.state.speed,
-//           speed: 20,
-//           hitIcon: false
-//         });
-//       setTimeout(this.undoPower, 5000, type);
-//     }else if(type === "lose"){
-//       this.setState({
-//         livesCount: this.state.livesCount - 1,
-//         loseLife: true,
-//         pauseGame: true,
-//         hitIcon: false,
-//         activeIcon: false
-//       });
-//       if(this.state.livesCount > 0){
-//         setTimeout(this.subALife, 1000);
-//       }else{
-//         setTimeout(this.endOfGame, 500);
-//       }
-//     }else if(type === "gain"){
-//       this.setState({
-//         livesCount: this.state.livesCount + 1,
-//         hitIcon: false,
-//         activeIcon: false
-//       });
-//     }else if(type === "bolt"){
-//       this.setState({
-//         prevSpeed: this.state.speed,
-//         speed: 0
-//       });
-//       setTimeout(this.undoPower, 3000, type);
-//     }else if(type === "nobounds"){
-//       this.setState({
-//         boundaries: "disabled"
-//       })
-//       setTimeout(this.undoPower, 25000, type);
-//     }
-//   }
-
-//   undoPower(type){
-//     console.log('ran', type);
-//     if(type === "blackout"){
-//       console.log('ran blackout');
-//       this.setState({
-//         backgroundColor: "#ffffff",
-//         color: "#000000",
-//         hitIcon: false,
-//         activeIcon: false
-//       });
-//     }else if(type === "faster"){
-//       this.setState({
-//         speed: this.state.prevSpeed,
-//         hitIcon: false,
-//         activeIcon: false
-//       });
-//     }else if(type === "bolt"){
-//       this.setState({
-//         speed: this.state.prevSpeed,
-//         hitIcon: false,
-//         activeIcon: false
-//       })
-//     }else if(type === "nobounds"){
-//       this.setState({
-//         boundaries: true,
-//         hitIcon: false,
-//         activeIcon: false
-//       });
-//     }
-//   }
-
-// //Getting number of random icon numbers
-//   randomIcons(x) {
-//     const iconRandom = Math.floor(Math.random() * x);
-//     const arrayFill = {
-//             left: window.innerWidth * 0.4,
-//             top: window.innerHeight * 0.4,
-//             type: ""};
-//     this.setState({
-//       icons: Array(iconRandom).fill(arrayFill)
-//     });
-//   }
-
-//   renderIcons() {
-//     if(this.state.icons.length > 0){
-//       this.iconRender = this.state.icons.map((icon, index) => {
-//         if(icon.type === "faster"){
-//           return <SpeedUp 
-//                   id={"icon" + index}
-//                   left={icon.left}
-//                   top={icon.top} />
-//         }else if (icon.type === "blackout"){
-//           return <BlackOut
-//                     id={"icon" + index}
-//                     left={icon.left}
-//                     top={icon.top} />
-//         } else if (icon.type === "lose"){
-//           return <Bomb 
-//                     id={"icon" + index}
-//                     left={icon.left}
-//                     top={icon.top} />          
-//         }else if(icon.type === "gain"){
-//           return <GainALife
-//                     id={"icon" + index}
-//                     left={icon.left}
-//                     top={icon.top} />
-//         }else if(icon.type === "bolt"){
-//           return <LightSpeed
-//                     id={"icon" + index}
-//                     left={icon.left}
-//                     top={icon.top} />
-//         }else if(icon.type === "nobounds"){
-//           return <NoBoundaries
-//                     id={"icon" + index}
-//                     left={icon.left}
-//                     top={icon.top} />
-//         }
-//       })
-//     }else {
-//       this.iconRender = this.state.icons.map((icon, index) => {
-//         return ;
-//       });
-//     }
-//   }
-
-
-
-
-
-//**************************MOVING SNAKE FUNCTIONS************************************
-
-
-//This function is run in the getSnakeMovePrevious,
-//It takes the index and direction from there. 
-//if the index of dot being checked is 0 then it won't run.
-//Also, if the dots have never changed position it won't run.
-// and it will return the current direction of segment and the current count of Pos
-//If true, then we get the changePos number from the previous segment &
-//use that number to get the correct index of the changeDirection state.
-//It will be tracking the position of the snake[i] and comparing it to
-// the changeDirection[count].
-// if left and top position are the same then it will return the changedDirection, 
-//update the snake[i].changePos
-//If it does not equal the changeDirection[count] then it returns the org direction
-// and current state of snake[i].changePos. 
-//   snakeEffect(i, d) {
-//     const snake = this.state.snake.slice();
-//     if(i > 0){
-//       const iCount = snake[i].changePos;
-//       const pCount = snake[i - 1].changePos;
-//       const subCounts = pCount - iCount;
-//       if(subCounts > 0){
-//         const left = snake[i].left;
-//         const top = snake[i].top;
-//         const currCount = snake[i].changePos + 1;
-//         const cd = this.state.changeDirection.slice();
-//         const cdLeft = cd[currCount].left;
-//         const cdTop = cd[currCount].top;
-//         const cdDirection = cd[currCount].direction;
-//         if(left === cdLeft && top === cdTop){
-//           const upDateCount = currCount;
-//             return {d: cdDirection, count: upDateCount, left: cdLeft, top: cdTop, move: this.state.hitBoundary ? -250 : 1};
-//         }else{
-//           const currCount = this.state.snake[i].changePos;
-//           const top = this.state.snake[i].top;
-//           const left = this.state.snake[i].left;
-//             return {d: d, count: currCount, top: top, left: left, move: this.state.hitBoundary ? -250 : 1};
-//         }
-//       }else{
-//         const currCount = this.state.snake[i].changePos;
-//         const top = this.state.snake[i].top;
-//         const left = this.state.snake[i].left;
-//           return {d: d, count: currCount, top: top, left: left, move: this.state.hitBoundary ? -250 : 1};
-//       }
-//     }else {
-//       const currCount = this.state.snake[i].changePos;
-//       const top = this.state.snake[i].top;
-//       const left = this.state.snake[i].left;
-//         return {d: d, count: currCount, left: left, top: top, move: this.state.hitBoundary ? -250 : 1};
-//     }
-//   }
-// //Called once upon when hitBoundary is true. It changes to changeDirection to the new positions
-// //so the dots can continue to snake through the directions
-//   boundaryChangePoints() {
-//     const snake = this.state.snake.slice();
-//     const back = snake[snake.length - 1].changePos;
-//     const head = snake[0].changePos;
-//     const d = snake[0].dotDirection;
-//     const move = -250;
-//     if(head - back > 0){
-//       const changePostionArray = this.state.changeDirection.map((pos, index) => {
-//           pos.left = d === 'left' ? pos.left - (move) : d === 'right' ? pos.left + (move) : pos.left;
-//           pos.top = d === 'down' ? pos.top + (move) : d === 'up' ? pos.top - (move) : pos.top;
-//           return {
-//             direction: pos.direction,
-//             left: pos.left,
-//             top: pos.top
-//           }
-//       });
-//     }
-
-//   }
-
-
-// //function is set on interval in the change direction function,
-// //It takes parameters from the changePositionOfSnake ()
-// //i = index, left = leftPositionofi, top = topPositionOfi, d= dotDirection of i,
-// //sEffect.d = the direction of snake[i], even before it is changed on state.
-// // needed to do this because the state was not changing in time for the dots to continue
-// // to move in the right way.
-// //When it runs the dots map will render the dots onto page
-// //Then it runs the snakeEffect which uses the index and direction of each segment
-// //Using the direction it will determine when the dot is to move
-// //Then it calls overlapDots to check if the head dot is overlapping a random dot 
-// //Lastly, we set the new state of the snake
-//   getSnakeMovePrevious(i, left, top, d) {
-//       const snake = this.state.snake.slice();
-//       const snakeEffect = this.snakeEffect(i, d);
-
-//       if(this.state.hitBoundary){
-//         const hd = snake[0].dotDirection;
-//         snake[i].dotDirection = snakeEffect.d;
-//           snake[i].changePos = snakeEffect.count;
-//           snake[i].left = hd === 'left' ? snakeEffect.left - snakeEffect.move : hd === 'right' ? snakeEffect.left + snakeEffect.move : snakeEffect.left;
-//           snake[i].top = hd === 'down' ? snakeEffect.top + snakeEffect.move : hd === 'up' ? snakeEffect.top - snakeEffect.move : snakeEffect.top;
-//           this.setState({
-//             snake: snake
-//           });
-//         this.overlapDots();
-//         this.overlapIcons();
-//         this.boundaries(i);
-//       }else {
-//           snake[i].dotDirection = snakeEffect.d;
-//           snake[i].changePos = snakeEffect.count;
-//           snake[i].left = snakeEffect.d === 'left' ? snakeEffect.left - snakeEffect.move : snakeEffect.d === 'right' ? snakeEffect.left + snakeEffect.move : snakeEffect.left;
-//           snake[i].top = snakeEffect.d === 'down' ? snakeEffect.top + snakeEffect.move : snakeEffect.d === 'up' ? snakeEffect.top - snakeEffect.move : snakeEffect.top;
-//         this.setState({
-//           snake:snake
-//         });
-      
-//         this.overlapDots();
-//         this.overlapIcons();
-//         this.boundaries(i);
-//       }
-//   }
-
-// //this function is the interval that is continuiously running. 
-// //it maps over the snake array and sends the infomation to the getSnakeMovePrevious
-
-//   changePositionOfSnake() {
-//         this.randomDotsMap();
-//         this.renderIcons();
-//       const newSnakeArray = this.state.snake.map((seg, index) => {
-//         const left = seg.left;
-//         const top = seg.top;
-//         const direction = seg.dotDirection;
-//         this.direction = seg.dotDirection;
-//         this.getSnakeMovePrevious(index, left, top, direction);
-//               return direction;
-//       });
-//       if(this.state.pauseGame){
-//         clearTimeout(this.startTimeout);
-//       }else {
-//       this.startTimeout = setTimeout(this.changePositionOfSnake, this.state.speed);
-//     }
-//   }
-
-//This function is triggered when the left arrow is pressed.
-//it clears previous interval, then checks if the dotDirection is 'right'
-//if true then changes to this.changeDown().
-//if false, then sets the snake[0].left, top and direction to a new array concated
-//onto the changeDirection key. Changes the dotDirection of the headSnake. 
-// setState and restarts interval.
-//   changeLeft() {
-//     const snake = this.state.snake.slice();
-//     if(snake[0].dotDirection === "right"){
-//       this.changeDown();
-//     }else {
-//       console.log('missed if');
-//       const hLeft = snake[0].left;
-//       const hTop = snake[0].top;
-//       snake[0].dotDirection = "left";
-//       const currPos = snake[0].changePos;
-//       snake[0].changePos = currPos + 1;
-//       this.setState({
-//         snake: snake,
-//         changeDirection: this.state.changeDirection.concat([{
-//           left: hLeft,
-//           top: hTop,
-//           direction: "left"
-//         }]),
-//       });
-//       //this.interval = setInterval(this.changePositionOfSnake, 100);
-//     }
-//   }
-
-// //This function is triggered when the right arrow is pressed.
-// //it clears previous interval, then checks if the dotDirection is 'left'
-// //if true then changes to this.changeUp().
-// //if false, then sets the snake[0].left, top and direction to a new array concated
-// //onto the changeDirection key. Changes the dotDirection of the headSnake. 
-// // setState and restarts interval.
-
-//   changeRight() {
-//     const snake = this.state.snake.slice();
-//     if(snake[0].dotDirection === "left"){
-//       console.log('ran if');
-//       this.changeUp();
-//     }else {
-//       const hLeft = snake[0].left;
-//       const hTop = snake[0].top;
-//       const currPos = snake[0].changePos;
-//       snake[0].changePos = currPos + 1;
-//       snake[0].dotDirection = "right";
-
-//       this.setState({
-//         snake: snake,
-//         changeDirection: this.state.changeDirection.concat([{
-//           left: hLeft,
-//           top: hTop,
-//           direction: "right"
-//         }]),
-//       });
-//     }
-//     //this.interval = setInterval(this.changePositionOfSnake, 100);
-//   }
-
-// //This function is triggered when the up arrow is pressed.
-// //it clears previous interval, then checks if the dotDirection is 'down'
-// //if true then changes to this.changeLeft().
-// //if false, then sets the snake[0].left, top and direction to a new array concated
-// //onto the changeDirection key. Changes the dotDirection of the headSnake. 
-// // setState and restarts interval.
-
-//   changeUp() {
-//     const snake = this.state.snake.slice();
-//     if(snake[0].dotDirection === "down"){
-//       this.changeLeft();
-//     }else {
-//       const hLeft = snake[0].left;
-//       const hTop = snake[0].top;
-//       const currPos = snake[0].changePos;
-//       snake[0].changePos = currPos + 1;
-//       snake[0].dotDirection = "up";
-//       this.setState({
-//         snake: snake,
-//         changeDirection: this.state.changeDirection.concat([{
-//             left: hLeft,
-//             top: hTop,
-//             direction: "up"
-//           }]),
-//       });
-//     }
-//     //this.interval = setInterval(this.changePositionOfSnake, 100);
-//   }
-
-// //This function is triggered when the down arrow is pressed.
-// //it clears previous interval, then checks if the dotDirection is 'up'
-// //if true then changes to this.changeRight().
-// //if false, then sets the snake[0].left, top and direction to a new array concated
-// //onto the changeDirection key. Changes the dotDirection of the headSnake. 
-// // setState and restarts interval.
-//   changeDown() {
-//     //clearInterval(this.interval);
-//     const snake = this.state.snake.slice();
-//     if(snake[0].dotDirection === "up"){
-//       this.changeRight();
-//     }else {
-//       const hLeft = snake[0].left;
-//       const hTop = snake[0].top;
-//       const currPos = snake[0].changePos;
-//       snake[0].changePos = currPos + 1;
-//       snake[0].dotDirection = "down";
-//       this.setState({
-//         snake: snake,
-//         changeDirection: this.state.changeDirection.concat([{
-//             left: hLeft,
-//             top: hTop,
-//             direction: "down"
-//           }]),
-//       });
-//     }
-//     //this.interval = setInterval(this.changePositionOfSnake, 100);
-//   }
-
    gameTick() {
     this.setState((state) => {
       let {
@@ -1095,9 +219,14 @@ handleonclick() {
         followPosition,
         lifeCount,
         pauseGame,
+        game,
         icons,
-        tickTime
-      } = state;
+        hitTail,
+        color,
+        activeIcon,
+        count,
+        activeIconType
+        } = state;
 
       let {
         tail
@@ -1113,6 +242,22 @@ handleonclick() {
       };
 
       followPosition = followPosition.concat(head);
+
+
+    //check if head intersects with tail
+      tail.forEach( t => {
+        if(head.col === t.col && head.row === t.row){
+          hitTail = true;
+          pauseGame = true;
+          lifeCount = lifeCount - 1;
+          color = "E71D36";
+          clearInterval(window.fnInterval);
+        }else {
+          //need this for lifecount in decrease
+          hitTail = false;
+        }
+      });
+
       //snake eats
 
       food.forEach( f => {
@@ -1121,11 +266,18 @@ handleonclick() {
         icons = this.randomIcons();
         const value = followPosition[followPosition.length - 1].valueOf();
         tail = tail.concat(value);
-        if(this.state.snake.tail.length % 5 === 0){
-          tickTime = tickTime - 100;
+        if(this.state.snake.tail.length > 2 && this.state.snake.tail.length % 5 === 0){
+          clearInterval(window.fnInterval);
+          this.tickTime = this.tickTime - 20;
+          this.maxTime = 50;
+          window.fnInterval = setInterval(() => {
+            this.gameTick();
+          }, this.tickTime === this.maxTime ? this.maxTime : this.tickTime);
         }else{
-          tickTime = tickTime;
+          this.tickTime = this.tickTime;
         }
+        color = "000000";
+
         return true
         }else {
           return false;
@@ -1133,43 +285,146 @@ handleonclick() {
       });
 
 
+    //icon overlap
 
-      switch (currentDirection) {
-      case 'left':
-      head.col--;
-      break;
+    icons.forEach(i => {
+      if(head.row === i.row && head.col === i.col){
+        clearInterval(window.fnInterval);
+        this.prevTickTime = this.tickTime;
+        if(i.itype === "faster"){
+          activeIcon = true;
+          activeIconType = "faster";
+          this.tickTime = 150;
+          window.fnInterval = setInterval(() => {
+              this.gameTick();
+            }, this.tickTime);
+        }
+      }
+    })
 
-      case 'up':
-      head.row--;
-      break;
+    if(activeIcon){
+     count = count++;
+      if(count === 20 && activeIconType === "faster"){
+        this.tickTime = this.prevTickTime;
+        clearInterval(window.fnInterval);
+        activeIcon = false;
+        window.fnInterval = setInterval(() => {
+                this.gameTick();
+              }, this.tickTime);
+      }
 
-      case 'down':
-      head.row++;
-      break;
-
-      case 'right':
-      head.col++;
-      break;
     }
+
+    
 
     //lose life
       if(head.row < 0 || head.row > this.state.rows || head.col < 0 || head.col > this.state.cols){
         lifeCount = lifeCount - 1;
         pauseGame = true;
         clearInterval(window.fnInterval);
-        const hvalue = followPosition[followPosition.length - 5].valueOf();
-        head = hvalue;
+        switch (currentDirection) {
+          case 'left':
+          head.col = head.col + 5;
+          break;
+
+          case 'up':
+          head.row = head.row + 5;
+          break;
+
+          case 'down':
+          head.row = head.row - 5;
+          break;
+
+          case 'right':
+          head.col = head.col - 5;
+          break;
+        }
         if(tail.length > 0){
           const tMap = tail.map((seg, index) => {
-            const tdex = index + 6;
-            const value = followPosition[followPosition.length - tdex].valueOf();
-            seg = value;
+            const i = index + 1;
+            switch (currentDirection) {
+              case 'left':
+              seg.col = head.col + i;
+              break;
+
+              case 'up':
+              seg.row = head.row + i;
+              break;
+
+              case 'down':
+              seg.row = head.row - i;
+              break;
+
+              case 'right':
+              seg.col = head.col - i;
+              break;
+            }
+
             return seg;
           });
         tail = tMap;
       }
 
+      }else if(hitTail) {
+        switch (currentDirection) {
+            case 'left':
+            head.col = head.col + 2;
+            break;
+
+            case 'up':
+            head.row = head.row + 2;
+            break;
+
+            case 'down':
+            head.row = head.row - 2;
+            break;
+
+            case 'right':
+            head.col = head.col - 2;
+            break;
+          }
+          const tMap = tail.map((seg, index) => {
+            const i = index + 1;
+            switch (currentDirection) {
+              case 'left':
+              seg.col = seg.col + 2;
+              break;
+
+              case 'up':
+              seg.row = seg.row + 2;
+              break;
+
+              case 'down':
+              seg.row = seg.row - 2;
+              break;
+
+              case 'right':
+              seg.col = seg.col - 2;
+              break;
+            }
+
+            return seg;
+          });
+        tail = tMap;
+        clearInterval(window.fnInterval);
       }else {
+        switch (currentDirection) {
+            case 'left':
+            head.col--;
+            break;
+
+            case 'up':
+            head.row--;
+            break;
+
+            case 'down':
+            head.row++;
+            break;
+
+            case 'right':
+            head.col++;
+            break;
+          }
         if(tail.length > 0){
           const tMap = tail.map((seg, index) => {
             const tdex = index + 2;
@@ -1180,12 +435,17 @@ handleonclick() {
           tail = tMap;
         }
       }
+
     const newState = {
       ...state,
       food,
+      color,
       icons,
+      game,
       followPosition,
-      tickTime,
+      activeIcon,
+      activeIconType,
+      count,
       snake: {
         head,
         tail
@@ -1201,36 +461,26 @@ handleonclick() {
     }
     });
     if(this.state.pauseGame){
-      if(this.state.lifeCount > 0){
-        console.log('hit');
-        window.fnInterval = setInterval(() => {
-          this.gameTick();
-        }, this.state.tickTime);
-        const opposite =  this.state.currentDirection === "up" ? "left" : 
-                    this.state.currentDirection === "down" ? "right" :
-                    this.state.currentDirection === "left" ? "up" :
-                    "down";
-        this.setState({
-          pauseGame: false,
-          currentDirection: opposite
-        });
-      }else {
-        this.setState({
-          game: false
-        });
+          if(this.state.lifeCount > 0){
+            window.fnInterval = setInterval(() => {
+              this.gameTick();
+            }, this.tickTime);
+            const opposite =  this.state.currentDirection === "up" ? "left" : 
+                              this.state.currentDirection === "down" ? "right" :
+                              this.state.currentDirection === "left" ? "up" : "down";
+            this.setState({
+              pauseGame: false,
+              hitTail: false,
+              currentDirection: opposite
+            });
+
+        }else {
+          this.setState({
+            game: false
+          });
+        }
       }
-    }
   }
-
-
-  // concatPosition(position) {
-  //   const fp = this.state.followPosition;
-  //   fp = fp.concat(position);
-
-  //   this.setState({
-  //     followPosition: fp
-  //   });
-  // }
 
 
   movingDot(evt) {
@@ -1238,22 +488,38 @@ handleonclick() {
     switch (evt.keyCode) {
       //left arrow
       case 37: 
+      if(currentDirection === "right"){
+        currentDirection = 'up';
+      }else {
         currentDirection = 'left';
+      }
       break;
 
       //right arrow
       case 39:
+        if(currentDirection === "left"){
+        currentDirection = 'down';
+      }else {
         currentDirection = 'right';
+      }
       break;
 
       //up arrow
       case 38:
+        if(currentDirection === "down"){
+        currentDirection = 'left';
+      }else {
         currentDirection = 'up';
+      }
       break;
 
       //down arrow
       case 40:
+        if(currentDirection === "up"){
+        currentDirection = 'right';
+      }else {
         currentDirection = 'down';
+      }
       break;
 
     }
@@ -1272,31 +538,30 @@ handleonclick() {
   }
 
   render() { 
-    console.log(this.gridHeight);
     const halfWidth = window.innerWidth / 2;
     const centerPause = halfWidth - 243.6875;
 
 //Map for grid
     const grid = this.state.grid;
     this.grid = grid.map((cell, index)=> {
-      if(cell.isFood){
+      if(cell.isTail){
         return <div
         key={cell.row+index+ '-' + cell.col}
-        className={cell.isFood ? "grid-item is-food" : "grid-item"} ><Dot
-                                                                      color={cell.color}
-                                                                      /></div>
+        className={cell.isTail ? "grid-item is-tail" : "grid-item"} ><Dot
+                                                                        color={this.state.color}
+                                                                        /></div>
       }else if(cell.isHead){
         return <div
         key={cell.row+index+ '-' + cell.col}
         className={cell.isHead ? "grid-item is-head blink-animation" : "grid-item"} ><Dot
                                                                                       color={this.state.color}
                                                                                       /></div>
-      }else if(cell.isTail){
+      }else if(cell.isFood){
         return <div
         key={cell.row+index+ '-' + cell.col}
-        className={cell.isTail ? "grid-item is-tail" : "grid-item"} ><Dot
-                                                                        color={this.state.color}
-                                                                        /></div>
+        className={cell.isFood ? "grid-item is-food" : "grid-item"} ><Dot
+                                                                      color={cell.color}
+                                                                      /></div>
       }else if(cell.isIcon){
         if(cell.type === "faster"){
           return <div
@@ -1335,20 +600,6 @@ handleonclick() {
         className="grid-item" ></div>
       }
     })
-    // const madeGoal = <GoalMade 
-    //                   level={this.state.level}
-    //                   />
-    // const loseLife = <LoseLife />
-
-    // const gameOver = <GameOver />
-
-    // const pauseGame = <PauseDisplay
-    //                     center={centerPause} />
-
-                // {this.state.madeGoal ? madeGoal : ''}
-                // {this.state.loseLife ? loseLife : ''}
-                // {this.state.gameOver ? gameOver : ''}
-                // {this.state.pauseGame ? pauseGame : ''}
 
     return (
       <div style={{height: window.innerHeight, width: window.innerWidth}}>
